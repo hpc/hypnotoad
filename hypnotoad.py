@@ -1,6 +1,21 @@
 #!/usr/bin/env python
 
-import getopt, sys
+import logging
+import sys
+import getopt
+import ConfigParser
+
+def setup_logger(name):
+    formatter = logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(module)s - %(message)s')
+
+    handler = logging.StreamHandler()
+    handler.setFormatter(formatter)
+
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(handler)
+
+    return logger
 
 def load_hypnotoad_plugin(path, cls, name):
     """
@@ -18,7 +33,7 @@ def load_hypnotoad_plugin(path, cls, name):
     """
  
     def look_for_subclass(modulename):
-        log.debug("Searching %s" % (modulename))
+        LOG.debug("Searching %s" % (modulename))
         module=__import__(modulename)
  
         #walk the dictionaries to get to the last one
@@ -35,7 +50,7 @@ def load_hypnotoad_plugin(path, cls, name):
  
             try:
                 if issubclass(entry, cls) and name == modulename:
-                    log.debug("Found plugin:" + key)
+                    LOG.debug("Found plugin:" + key)
                     return entry
             except TypeError:
                 #this happens when a non-type is passed in to issubclass. We
@@ -66,10 +81,10 @@ def send_input_to_output(config):
         scheduler = load_hypnotoad_plugin(path, SchedulerPlugin, output)
 
         if datamodel is None:
-            log.error("Failed loading a data model plugin: " % input)
+            LOG.error("Failed loading a data model plugin: " % input)
             sys.exit(1)
         if scheduler is None:
-            log.error("Failed loading a scheduler plugin: " % output)
+            LOG.error("Failed loading a scheduler plugin: " % output)
             sys.exit(1)
 
         datamodel.setup()
@@ -79,10 +94,10 @@ def send_input_to_output(config):
         pinfo = datamodel.priority_info()
 
         if uinfo is None:
-            log.error("Data model user info is invalid.")
+            LOG.error("Data model user info is invalid.")
             sys.exit(1)
         if pinfo is None:
-            log.error("Data model priority info is invalid.")
+            LOG.error("Data model priority info is invalid.")
             sys.exit(1)
 
         print scheduler.user_output(uinfo)
@@ -96,11 +111,11 @@ def send_input_to_output(config):
         raise
 
 def read_config(filename):
-    config = ConfigParser.RawConfigParser(allow_no_value=True)
+    config = ConfigParser.RawConfigParser()
     config.read(filename)
 
     # Try to get a required option to see if we have a valid config file.
-    log.debug("Using support dir: " % config.get('Basic Options', 'support_dir'))
+    LOG.debug("Using support dir: " + config.get('Basic Options', 'support_dir'))
 
     return config
 
@@ -121,7 +136,12 @@ def main():
         else:
             assert False, "unhandled option"
 
+    # Use the default location
+    if config is None:
+        config = read_config("hypnotoad.cfg")
+
     send_input_to_output(config)
 
+LOG = setup_logger('root')
 if __name__ == "__main__":
     main()
