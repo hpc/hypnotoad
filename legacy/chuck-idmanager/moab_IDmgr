@@ -1,0 +1,1016 @@
+#!/usr/bin/perl -w -I /opt/MOAB/tools
+
+#  This perl script is a Moab ID manager.  Its function is to associate
+#  a list of users supplied from a LDAP database with each Moab account
+#  specified in the Moab config file "/opt/MOAB/moab.cfg".
+#
+#  This script is based originally on manage-lsf-groups by Jerry Melendez,
+#  May 2004.
+#
+#  The section on script invariants sets all of the variables which control
+#  subsequent execution.  These include directories, files, LDAP query scripts,
+#  and operational variables.  These control aspects of script operation.
+#
+#  Initial version: Chuck Hales, Aug '07
+#  Revisions:
+#  Oct 10 2007: Changes toward a more generic LANL installation, typo fixes,
+#     and improved calculation of number of changes. 
+#  Nov  5 2007: Include 1st pass at setting default group/account.
+#  Dec 20 2007:
+#     a) Log inconsistencies in separate files named "IDmgr-*.log" rather than
+#        the std "IDmgr.log" file.  These files are overwritten each execution.
+#     b) Impose a time limit for the LDAP queries.
+#     c) Misc. cleaning and error correction.
+#  Jan  4 2008: Correct error in determining interactive execution.
+#  May  7 2008: If > $MAX_CHANGES, simply send mail and reuse previous info.
+#  Jun  9 2008: 
+#     a) Add viz as a "special" account -- only used as default if no choice.
+#     b) Allow account user list defined only within moab.cfg.
+#  Jun 13 2008: Read cluster specific info, i.e. @SpecAcct, from a config file,
+#     specifically /opt/MOAB/tools/config.IDmgr.pl.  Include appropriate failure
+#     warning if config file doesn't exist.
+#  Sep 14 2008:
+#    Minor reformating and a additional comments
+#  Oct 16 2008: Assign an account (NOACCT) for user with passwd entries but no
+#     LDAP group.
+#  Dec 12 2008: Add accounts from @AllAcct as optional accounts for all users.
+#     While @AllAcct is added to alist for each user it is never adef.
+#     Accounts from  @AllAcct is never added NOACCT users.
+#  Feb 11 2009: Minor correction to regex for ACCOUNTCFG scan of moab.cfg.
+#  Apr  1 2009: Allow for tool configuration files moved from tools/ to etc/.
+#     Cosmetic format changes.
+#  Sep 26 2009: Test for zero length config.IDmgr.pl rather than existence.
+#  Sep 26 2009: Test for zero length config.IDmgr.pl rather than existence.
+#  Nov 18 2009: Explicitly test moab version to determine config file dir.
+#    
+
+#NOTE: The following moab.cfg parameters are required:
+##     ENFORCEACCOUNTACCESS TRUE        # Enforce user access to only alist.
+##     IDCFG[<name>] CREATECRED=TRUE    # Allow IDmgr to create new credentials.
+##     IDCFG[<name>] BLOCKCREDLIST=user # Block any user without LDAP group
+
+# Get cluster specific IDmgr variables
+#   @SpecAcct - generally high priority accounts which should not be the user
+#   default account.
+#   @AllAcct - array which are included to alist for all users which are never
+#   default account.
+BEGIN {
+  $LocalConfig = "/opt/MOAB/tools/config.IDmgr.pl";
+  # As of moab 5.3.2 tool configuration files were moved from tools/ to etc/,
+  #   allow for this alternate location.
+  $Mvers = `/bin/rpm -qa moab`;		chomp $Mvers;
+  @tmp = split(/-/, $Mvers);		$Mvers = $tmp[1];	$Mvers =~ s/\.//g;
+  if ( not -r $LocalConfig or $Mvers >= 532) {
+    $LocalConfig = "/opt/MOAB/etc/config.IDmgr.pl";
+    -s $LocalConfig || die "\nCan not open /opt/MOAB/etc/config.IDmgr.pl, $!!\n"
+	    . "Create it by editing /opt/MOAB/etc/config.IDmgr.pl.template.\n\n";
+  }
+  require $LocalConfig;
+}
+
+$| = 1;                                    # Autoflush print buffer
+$prog = $0;       $prog =~ s/^.*\///;      # Script name for diagnostics
+$NoLDAP = 0;                               # Unreachable LDAP server flag
+
+################################################################################
+# Read input paramaters and set default flags
+################################################################################
+require "getopts.pl";
+
+$opt_d = $opt_h = $opt_v = 0;
+unless (&Getopts('dhv')) {&usage; exit 1;}
+$DEBUG   = $opt_d ? 1 : 0;
+$HELP    = $opt_h ? 1 : 0;
+$VERBOSE = $opt_v ? 1 : 0;
+
+# Automatic mode is determined by tty being defined
+if ( -t STDIN && -t STDOUT) { $INT = 1; }
+else                        { $INT = 0; }
+
+################################################################################
+# Set script invariants
+################################################################################
+# Directories
+$IDmgrDIR="/opt/MOAB/lanl/IDmgr";          # IDmgr working directory
+$IDmgrBAK="$IDmgrDIR/bak_IDmgr";           # IDmgr backup directory
+$LOG_DIR="/opt/MOAB/log";                  # Log file directory
+
+# Files
+$DRM_GRPS="$IDmgrDIR/drm_grps.txt";        # User/group mapping file
+$DRM_GRPS_BAK="$IDmgrBAK/drm_grps.txt";    # Backup file name
+$LOCK_FILE="$IDmgrDIR/lock_IDmgr";         # Lock file name
+$LOG_FILE="$LOG_DIR/IDmgr.log";            # Log file name
+$MOAB_CFG="/opt/MOAB/moab.cfg";            # Moab configuration file
+$TMP_DRM_GRPS="$DRM_GRPS-tmp";             # Temporary user/group mapping file
+
+# LDAP query scripts
+$GETLDAP_USER="/usr/sbin/getldap_user";
+$GETLDAP_DRMGRP="/usr/sbin/getldap_lsfgrp";
+
+# Operational variables
+$LDAP_TIMEOUT=30;                          # Timeout (sec) for LDAP queries
+$MAX_CHANGES=25;                           # Max automatic mode changes
+$MAX_FILE_AGE=180;                         # Maximum days to hold backup copies
+$MAX_FILE_NUM=100;                         # Maximum number of backup copies
+$NOTIFY="drm-team\@lanl.gov";              # Error notification mail list
+
+# System Executables
+$WHICH="/usr/bin/which";                   # Use which to find sys executables
+$CAT=`$WHICH cat`;                         chomp($CAT);
+$CMP=`$WHICH cmp`;                         chomp($CMP);
+$DATE=`$WHICH date`;                       chomp($DATE);
+$DIFF=`$WHICH diff`;                       chomp($DIFF);
+$GREP=`$WHICH grep`;                       chomp($GREP);
+$MKDIR=`$WHICH mkdir`;                     chomp($MKDIR);
+$PS=`$WHICH ps`;                           chomp($PS);
+$SED=`$WHICH sed`;                         chomp($SED);
+$TR=`$WHICH tr`;                           chomp($TR);
+$UNAME=`$WHICH uname`;                     chomp($UNAME);
+
+################################################################################
+# Initialization operations
+################################################################################
+@months=('Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec');
+
+if ($HELP) {&usage;&help;exit;}
+
+# Open LOG_FILE
+$new_file = -e $LOG_FILE ? 0 : 1;
+open( LOG_FH, ">>$LOG_FILE") || die "Can not open log file:<$LOG_FILE>: $!";
+chmod(0644,$LOG_FILE) if $new_file;
+$CURRENT_FH=select LOG_FH;
+$|=1;                                      # Force buffer flush on LOG_FILE
+select $CURRENT_FH;                        # Restore current file handle
+
+&logmsg(0,"*** Starting $prog update ****");
+&logmsg(0,"Current PID = $$.");
+if ($DEBUG) { &logmsg(0,"Running in debug mode ==> no changes."); }
+
+# Create IDmgr working directory if needed
+if ( ! -d $IDmgrDIR ) {
+  if (not $DEBUG) {
+    system "$MKDIR -p $IDmgrDIR" ||
+      &abort_run("Abort: Can not create IDmgr directory <$IDmgrDIR>: $!");
+    chmod 0755, $IDmgrDIR;
+  }
+  &logmsg(1,"Created IDmgr directory <$IDmgrDIR>.\n");
+}
+
+# Create IDmgr backup directory if needed
+if ( ! -d $IDmgrBAK ) {
+  if (not $DEBUG) {
+    system "$MKDIR -p $IDmgrBAK" ||
+      &abort_run("Abort: Can not create IDmgr backup directory <$IDmgrBAK>: $!");
+    chmod 0755, $IDmgrBAK;
+  }
+  &logmsg(1,"Created IDmgr backup directory <$IDmgrBAK>.\n");
+}
+
+open(HN,"$UNAME -n |") || &abort_run( "Abort: Can not run command:<$UNAME>: $!" );
+chomp($HOST_NAME=<HN>);
+close(HN);
+@host= split (/\./, $HOST_NAME);           # Hostname is fully qualified
+$HOST_NAME=$host[0];
+&logmsg(0,"HOST_NAME=<$HOST_NAME>.");
+
+$ps_status = 0;    &check_lock();          # Check for other IDmgr PID
+
+if ( $INT ) {                              # Get Manager name if $INT
+  $mgr_name="";
+  # Get manager name from user's environment.
+  if (( $ENV{'LOGNAME'} ) && ( $ENV{'LOGNAME'} ne 'root')) {
+    $mgr_name=$ENV{'LOGNAME'};
+  }
+  # Get manager name from user's environment for sudo-type systems (linux).
+  if (( $ENV{'SUDO_USER'} ) && ( $ENV{'SUDO_USER'} ne 'root')) {
+    $mgr_name=$ENV{'SUDO_USER'};
+  }
+
+  while (! $mgr_name) {
+    print "Please enter your login name: ";
+    chop($mgr_name=<STDIN>);
+  }
+  &logmsg(0,"$mgr_name running interactive mode.");
+}
+
+################################################################################
+# Obtain local host user and group information
+################################################################################
+# Initialize master user list with all users in the passwd file.
+open(USERS,"$CAT /etc/passwd |") || &abort_run( "Abort: Can not run command:<$CAT>: $!" );
+while ( <USERS> ) {
+  chomp;
+  @pw_line = split(/:/);
+  $user = $pw_line[0];                     # Get user name (moniker)
+
+# Check for and discard legal user numbers.
+  next if $pw_line[4] !~ /,/;              # No Znum in record (sys acct?)
+  ($tmp,$Znum,$tmp)=split(/,/,$pw_line[4]);
+  if ( $Znum !~ /^ *[0-9]+ *$/ and $Znum !~ /^ i*[0-9]+ *$/ ) { next; }
+  push(@user_w_Z,$user);
+  $user_znum{$user}="$Znum";
+}
+close(USERS);
+
+# Find accounts (DRM groups) defined in Moab configuration file.
+@ext_groups=();
+open (GRPS, "$GREP ACCOUNTCFG $MOAB_CFG 2>&1 |") ||
+  &abort_run( "Abort: Can not run command:<$GREP ACCOUNTCFG $MOAB_CFG>: $!" );
+foreach $rec (<GRPS>) {
+  $recsv = $rec;
+  # Isolate only the account name
+  next if $rec =~ /^\s*#+\s*ACCOUNTCFG/;   # Skip commented out records
+  chomp($rec);    $rec =~ s/^\s*ACCOUNTCFG\[//;    $rec =~ s/].*$//;
+  next if $rec =~ /^default$/i;            # Ignore default definitions
+  if (not grep(/^$rec$/, @ext_groups)) { push(@ext_groups, $rec); }
+  # Check for account users defined in Moab configuration file.
+  next if $recsv !~ /MEMBERULIST/;         # Only process user list records
+  ($ulist{$rec}) = ($recsv =~ /MEMBERULIST=(\S+)/);
+  # Accounts defined only in moab.cfg should be added to @SpecAcct
+  if (not grep(/^$rec$/, @SpecAcct)) { push(@SpecAcct, $rec); }
+}
+close(GRPS);
+
+################################################################################
+# Query LDAP servers
+################################################################################
+# Query LDAP database for comparison with passwd data
+@Znums=values(%user_znum);
+if ( @Znums > 0 ) {
+  &logmsg(1,"Reading user LDAP database.");
+  $Znumbers=join(' ',@Znums);
+
+  @cmdout = ();    $timeup = 0;
+  $cmd = "$GETLDAP_USER $Znumbers 2>&1";
+  @cmdout = &do_cmd($cmd, $LDAP_TIMEOUT);
+
+  if (not $timeup) {
+    foreach $line (@cmdout) {
+      next if $line =~ /^\s*$/;            # Ignore blank lines
+
+      # Allow for LDAP server being unreachable
+      if ($line =~ "^Can\'t connect to LDAP server") {
+        &logmsg(0,"User LDAP server unreachable.");
+        $NoLDAP = 1;
+      }
+
+      # Report errors
+      $error=0;
+      $error=1 if $line =~ "Invalid";
+      $error=1 if $line =~ "LDAP";
+      $error=1 if $line =~ "No moniker";
+      if ( $error > 0 ) {
+        &logmsg(1,$line);
+        next;
+      }
+
+      @tmp = split(/\s+/,$line);
+      $user_org{$tmp[0]}=$tmp[4];
+    }
+  }
+}
+
+# If the user LDAP server is not responding resend last $DRM_GRPS file
+if ($timeup or $NoLDAP) {
+  &logmsg(0,"User LDAP server is currently down.") if $NoLDAP;
+  &logmsg(0,"User LDAP query timed out at $LDAP_TIMEOUT seconds.") if $timeup;
+  if (not -e $DRM_GRPS) {
+    &logmsg(0,"Abort:  \$DRM_GRPS ($DRM_GRPS) file does not exist.");
+    &abort_run( "Abort: No $DRM_GRPS exists.")
+  }
+  &logmsg(0,"Reusing previous \$DRM_GRPS ($DRM_GRPS) file.");
+
+  # Resend previous group information
+  system "$CAT $DRM_GRPS";
+  &cleanup;
+  exit;
+}
+
+# Query LDAP database for DRM user groups
+&logmsg(1,"Reading DRM group LDAP database.");
+
+@cmdout = ();    $timeup = 0;
+$cmd = "$GETLDAP_DRMGRP 2>&1";
+@cmdout = &do_cmd($cmd, $LDAP_TIMEOUT);
+
+@non_group=();
+@non_user=();
+if (not $timeup) {
+  foreach (@cmdout) {
+    chomp;
+    if ($_ =~ "^Can\'t connect to LDAP server") {
+      logmsg(0,"Group LDAP server unreachable.");
+      $NoLDAP = 1;
+      next;
+    }
+
+    if ($_ =~ /has no members$/) {
+      ($trash, $group, $trash) = split(' ', $_, 3);
+      push(@nomemb, $group);
+      next;
+    }
+
+    # Remove open paren and close paren and squeeze out blanks
+    tr/\(\)/ /;                 s/ //g;
+    ($group,$members)=split('=');
+    push(@LDAP_groups,$group);
+
+    if ( &has_item($group,@ext_groups) ) {
+      # Associate groups with users.
+      foreach $user (split(',',$members)) {
+        if (exists $user_znum{$user}) {
+          if (exists $user_groups{$user}) {
+            $user_groups{$user}=join(',',$user_groups{$user},$group);
+          } else {
+            $user_groups{$user}=$group;
+          }
+        } else {
+           # User is not valid
+           push(@non_user,$user);
+        }
+      }
+    } else {
+      # Group is not valid
+      push(@non_group,$group);
+    }
+  }
+  @non_user = &uniq(@non_user);
+  @non_user = sort(@non_user);
+
+  # Treat user lists for accounts defined within Moab configuration files
+  #   the same as the group (account) and users came from LDAP.
+  foreach $group (keys %ulist) {
+    foreach $user (split ',',$ulist{$group}) {
+      if (exists $user_groups{$user}) {
+        $user_groups{$user}=join(',',$user_groups{$user},$group);
+      } else {
+        $user_groups{$user}=$group;
+      }
+    }
+  }
+}
+
+# If the group LDAP server is not responding resend last $DRM_GRPS file
+if ($timeup or $NoLDAP) {
+  &logmsg(0,"Group LDAP server is currently down.") if $NoLDAP;
+  &logmsg(0,"Group LDAP query timed out at $LDAP_TIMEOUT seconds.") if $timeup;
+  if (not -e $DRM_GRPS) {
+    &logmsg(0,"Abort:  \$DRM_GRPS ($DRM_GRPS) file does not exist.");
+    &abort_run( "Abort: No $DRM_GRPS exists.")
+  }
+  &logmsg(0,"Reusing previous \$DRM_GRPS ($DRM_GRPS) file.");
+
+  # Resend previous group information
+  system "$CAT $DRM_GRPS";
+  &cleanup;
+  exit;
+}
+
+# Remove LDAP groups with no members from accounts accounts (DRM groups)
+#   defined in Moab configuration file to prevent them from being reported
+#   as not included in the LDAP database.
+@ext_groups=&set_diff(*ext_groups, *nomemb);
+# Also remove other special accounts
+@tmp = @AllAcct;
+push(@tmp, "NOACCT");
+@ext_groups=&set_diff(*ext_groups, *tmp);
+@tmp=();
+
+################################################################################
+#  Checking for inconsistencies
+################################################################################
+# Find LDAP groups without coresponding external group.
+foreach $group (@ext_groups) {
+  if (not &has_item($group,@LDAP_groups)) { push(@noLDAPgrp,$group); }
+}
+
+# Identify any users with an invalid user LDAP entry (based on organization).
+@invalid_LDAP=();
+@tmp = ();
+foreach $user (@user_w_Z) {
+  if (exists $user_org{$user} ) {
+    push(@tmp,$user);
+  } else {
+    push(@invalid_LDAP,$user);
+    delete $user_znum{$user};
+  }
+}
+@user_w_Z = @tmp;
+@invalid_LDAP=sort(@invalid_LDAP);
+
+# Remove passwd users without LDAP groups.
+@tmp = ();
+foreach $user (@user_w_Z) {
+  if (defined $user_groups{$user}) { push(@tmp,$user); }
+  else                             { push(@usr_nogrp,$user); }
+}
+@user_w_Z = @tmp;
+
+################################################################################
+# Report all inconsistencies found
+################################################################################
+# Define the format for inconsistency reports
+format INCON =
+@<<<<<<<<<<<<<< ^<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+$tmstmp,        $comment
+~~              ^<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                $comment
+~~              ^<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                $list
+.
+
+# Report invalid user LDAP users (based on organization) with local host account
+if ( @invalid_LDAP ) {
+  $knt = $#invalid_LDAP + 1;
+  $comment = "The following users have an invalid user LDAP entry (based on "
+           . "organization) but have a valid $HOST_NAME account:";
+  @invalid_LDAP = sort(@invalid_LDAP);
+  $list = join(' ',@invalid_LDAP);
+  $tmstmp = `$DATE +\'%b %e %H:%M:%S\'`;      chomp $tmstmp;
+  open(INCON, ">$LOG_DIR/IDmgr-No_usr_LDAP.log");
+  write INCON;
+  close INCON;
+  $msg = "There are $knt users with invalid LDAP entries (based on organization).";
+  &logmsg(0, $msg);
+}
+
+# Report invalid LDAP group users with local host account
+if (@usr_nogrp) {
+  $knt = $#usr_nogrp + 1;
+  $comment = "The following users do NOT have a valid LDAP group but have a "
+           . "valid $HOST_NAME account:";
+  @usr_nogrp = sort(@usr_nogrp);
+  $list = join(' ',@usr_nogrp);
+  $tmstmp = `$DATE +\'%b %e %H:%M:%S\'`;      chomp $tmstmp;
+  open(INCON, ">$LOG_DIR/IDmgr-No_grp.log");
+  write INCON;
+  close INCON;
+  $msg = "There are $knt users without LDAP groups.";
+  &logmsg(0, $msg);
+}
+
+# Report valid LDAP group users without local host account
+if (@non_user) {
+  $knt = $#non_user + 1;
+  $comment = "The following users are in the LDAP group database but do NOT "
+           . "have a valid $HOST_NAME account:";
+  @non_user = sort(@non_user);
+  $list = join(' ',@non_user);
+  $tmstmp = `$DATE +\'%b %e %H:%M:%S\'`;      chomp $tmstmp;
+  open(INCON, ">$LOG_DIR/IDmgr-No_acct.log");
+  write INCON;
+  close INCON;
+  $msg = "There are $knt LDAP users without local accounts.";
+  &logmsg(0, $msg);
+}
+
+# Report LDAP groups with no members
+if (@nomemb) {
+  $knt = $#nomemb + 1;
+  $comment = "The following LDAP groups have NO members:";
+  @nomemb = sort(@nomemb);
+  $list = join(' ',@nomemb);
+  $tmstmp = `$DATE +\'%b %e %H:%M:%S\'`;      chomp $tmstmp;
+  open(INCON, ">$LOG_DIR/IDmgr-No_LDAP_memb.log");
+  write INCON;
+  close INCON;
+  $msg = "There are $knt LDAP groups with no users.";
+  &logmsg(0, $msg);
+}
+
+# Report valid LDAP groups without local host group
+if (@non_group) {
+  $knt = $#non_group + 1;
+  $comment = "The following groups are in the LDAP group database but are "
+           . "NOT defined Moab groups (accounts):";
+  @non_group = sort(@non_group);
+  $list = join(' ',@non_group);
+  $tmstmp = `$DATE +\'%b %e %H:%M:%S\'`;      chomp $tmstmp;
+  open(INCON, ">$LOG_DIR/IDmgr-DRM_grp.log");
+  write INCON;
+  close INCON;
+  $msg = "There are $knt LDAP groups without corresponding Moab groups (accounts).";
+  &logmsg(0, $msg);
+}
+
+# Report local host groups without valid LDAP group
+if (@noLDAPgrp) {
+  $knt = $#noLDAPgrp + 1;
+  $comment = "The following Moab groups (accounts) are NOT included in the "
+           . "LDAP group database:";
+  @noLDAPgrp = sort(@noLDAPgrp);
+  $list = join(' ',@noLDAPgrp);
+  $tmstmp = `$DATE +\'%b %e %H:%M:%S\'`;      chomp $tmstmp;
+  open(INCON, ">$LOG_DIR/IDmgr-LDAP_grp.log");
+  write INCON;
+  close INCON;
+  $msg = "There are $knt Moab groups (accounts) without corresponding LDAP groups.";
+  &logmsg(0, $msg);
+}
+
+# Assign users with a passwd entry but not LDAP group to NOACCT
+foreach $user ( @usr_nogrp ) {
+  push(@user_w_Z,$user);
+  $user_groups{$user} = "NOACCT";
+}
+
+################################################################################
+# Write out new external group members ($TMP_DRM_GRPS)
+################################################################################
+unlink $TMP_DRM_GRPS if -e $TMP_DRM_GRPS; # Remove any existing file
+unless (open TLE, ">$TMP_DRM_GRPS") {
+  &abort_run( "Abort: Cannot create file <$TMP_DRM_GRPS>: $!" );
+}
+foreach $user ( @user_w_Z ) {
+
+  # Set default account based on available accounts for each user
+  $groups = $user_groups{$user};
+
+  # If only a single acount is available, that is the users default
+  if ( $groups !~ ',' ) { $adef = $groups; }
+  else {
+    $adef = '';
+    @groups = split(/,/, $groups);
+
+    # The default shouldn't be a special account if there is another choice
+    foreach $group (@groups) {
+      last if $adef;
+        if (not grep(/^$group$/, @SpecAcct)) { $adef = $group; }
+    }
+
+    # If the default must be a special account, choose lowest priority
+    if (not $adef) {
+      foreach $spec (@SpecAcct) {
+        if (grep(/^$spec$/, @groups)) { $adef = $spec; }
+      }
+    }
+  }
+
+  # Add @AllAcct elements to alist for all users except NOACCT.
+  foreach $acct (@AllAcct) {
+    next if $user_groups{$user} eq "NOACCT";
+    $user_groups{$user} = "$user_groups{$user},$acct";
+  }
+
+  printf TLE "user:$user alist=$user_groups{$user} adef=$adef\n";
+}
+close(TLE);
+
+################################################################################
+# Compare new external groups with previous external groups
+################################################################################
+if ( -e $DRM_GRPS ) {
+  $havPREV = 1;
+
+  open(DIFFS, "$DIFF $DRM_GRPS $TMP_DRM_GRPS |");
+  @diffs = <DIFFS>;       close DIFFS;
+
+  # Find the actual number of lines changed
+  $num_changes = 0;
+  foreach (grep(/^[0-9]/, @diffs)) {
+    @fields = split(/[acd]/,$_);
+
+    if ( $fields[0] =~ /,/) {
+      @recs = split(/,/, $fields[0]);
+      $inc1 = $recs[1] - $recs[0] + 1;
+    } else { $inc1 = 1; }
+
+    if ( $fields[1] =~ /,/) {
+      @recs = split(/,/, $fields[1]);
+      $inc2 = $recs[1] - $recs[0] + 1;
+    } else { $inc2 = 1; }
+
+    if ($inc1 > $inc2) { $num_changes += $inc1; }
+    else               { $num_changes += $inc2; }
+  }
+
+} else {
+  $havPREV = 0;
+  $num_changes = 1;                        # Force new file generation
+}
+
+if ($num_changes and $havPREV) {
+  # Changes to make & have previous file: report group membership changes
+  &logmsg(1,"Changes to be made to external groups.\n");
+  print LOG_FH " >diff $DRM_GRPS $TMP_DRM_GRPS\n";
+  if ($INT) { print " >diff $DRM_GRPS $TMP_DRM_GRPS\n"; }
+  foreach (@diffs) { print LOG_FH;   print if $INT; }
+} elsif ($havPREV) {
+  # No changes & have previous file: simply resend previous information
+  &logmsg(0,"No changes. Reusing previous \$DRM_GRPS ($DRM_GRPS) file.");
+  system "$CAT $DRM_GRPS";
+  &cleanup;
+  exit;
+} else {
+  # No previous file: create it
+  &logmsg(0,"\$DRM_GRPS ($DRM_GRPS) file does not exist.  Creating it.");
+}
+
+if ( $havPREV ) {
+  &logmsg(0,"There are $num_changes additions and/or deletions.");
+  if ($num_changes > $MAX_CHANGES) {
+    if ( $INT ) {
+      # Check for confirmation to commit changes.
+      unless ( &verify( "Do you want to proceed?") ) {
+        &abort_run( "No changes made.");
+      }
+    } else {
+      &logmsg(0,"IDmgr Error: More than $MAX_CHANGES changes on $HOST_NAME -- moab_IDmgr should be rerun manually." );
+      &logmsg(0,"  Reusing previous \$DRM_GRPS ($DRM_GRPS) file.");
+      &send_notice("$prog ERROR","More than $MAX_CHANGES changes on $HOST_NAME -- moab_IDmgr should be rerun manually.");
+      system "$CAT $DRM_GRPS";
+      &cleanup;
+      exit;
+    }
+  }
+}
+&logmsg(0,"Creating $DRM_GRPS.");
+
+################################################################################
+# Purge old $DRM_GRPS files and rotate remaining files
+################################################################################
+&purge_files($MAX_FILE_AGE,$DRM_GRPS_BAK);
+&purge_file_num($MAX_FILE_NUM-1,$DRM_GRPS_BAK);
+&rename_files($DRM_GRPS_BAK);
+if (not $DEBUG) {
+  rename $DRM_GRPS, "$DRM_GRPS_BAK.1";
+  rename $TMP_DRM_GRPS,$DRM_GRPS;
+}
+
+# Send new group information
+if ($DEBUG) {
+  &logmsg(0,"Running in debug mode ==> writing new group mapping.");
+  system("$CAT $TMP_DRM_GRPS");
+} else {
+  system("$CAT $DRM_GRPS");
+}
+&cleanup;
+exit;
+
+
+################################################################################
+#  SUBROUTINES
+################################################################################
+
+sub abort_run {
+  &logmsg(0,@_);
+  unless ( $INT ) { &send_notice("$prog ABORT",@_); }
+  if ( -e $TMP_DRM_GRPS ) { unlink "$TMP_DRM_GRPS"; }
+  &logmsg(0,"Error Exit **************");
+  &cleanup(1);
+}
+
+sub check_lock {
+  my $lock_pid=();
+  my $line="";
+  my $rest="";
+  if ( -e $LOCK_FILE ) {
+    if ( open(LOCK_FH, "<$LOCK_FILE") ) {
+      chomp($line=<LOCK_FH>);
+     ($lock_pid,$rest)=split(' ',$line);
+      close(LOCK_FH);
+    }
+    if ($lock_pid ne "") {
+      $comm_name=&get_comm_name($lock_pid);
+      if ( $ps_status == 0 ) {
+        &logmsg(0,"$comm_name [$lock_pid] already active.");
+        close(LOG_FH);
+        exit(1);
+      } else {
+        &logmsg(1,"clearing lock_file for pid [$lock_pid].");
+        unlink $LOCK_FILE;
+      }
+    }
+  }
+  open(LOCK_FH, ">$LOCK_FILE");
+  printf LOCK_FH "%s\n",$$;
+  close(LOCK_FH);
+}
+
+sub cleanup {
+  # &cleanup($exit_status)
+  # Cleanup and exit
+  $exit_status=0;
+  # if ( @_ ) { $exit_status=$_[0] }
+  &logmsg(0,"*** Exiting $prog, exit status is $exit_status  ***\n");
+  unlink $TMP_DRM_GRPS if -e $TMP_DRM_GRPS;
+  unlink $LOCK_FILE if -e $LOCK_FILE;
+  close(LOG_FH);
+  exit($exit_status);
+}
+
+sub do_cmd {
+  # This subroutine executes a command $cmd subject to a time limit $timeout.
+  # The command output is returned.
+  my $cmd = shift @_; my $timeout = shift @_;
+  my $diag = 0;       my @recs = ();
+
+  eval {
+    local $SIG{ALRM} = sub { $timeup = 1; die "Received SIGALRM\n" };
+    alarm $timeout;                        # Set alarm in $timeout seconds
+    open (CMD, qq/$cmd 2>&1 |/);    @recs = <CMD>;    close CMD;
+    alarm 0;                               # Unset alarm
+  };
+
+  if ($@) {
+    die unless $@ eq "Received SIGALRM\n"; # propagate unexpected errors
+    if ($diag) { print LOGF qq/\nThe command "$cmd" timed out!\n/; }
+    return ();
+  } else {
+    if ($diag) {
+      print LOGF qq/\nThe command "$cmd" didn\'t time out\n  and returned:\n/;
+      foreach (@recs) { print LOGF $_; }
+    }
+    return @recs;
+  }
+}
+
+sub get_comm_name {
+# &get_comm_name($pid)
+#  Find the command name of a process.
+#  pid - process id
+#  Return - command name of pid.
+  my $pid=$_[0];
+  my $comm_name=`$PS -o comm= -p $pid 2>&1`;
+  $ps_status = $?;
+  chomp($comm_name);                   $comm_name=~s/\s+//g;
+  $comm_name;
+}
+
+sub has_item {
+  local $item=shift(@_);
+  local $found=0;
+  local $it;
+  foreach $it (@_) {
+    if ( $item eq $it ) {
+      $found=1;
+      last;
+    }
+  }
+  $found;
+}
+
+sub help {
+  printf "\n";
+  printf "   -d = Debug mode, show what changes would be made but don't make any changes.\n";
+  printf "   -h = Write out this message.\n";
+  printf "   -v = Verbose mode, only interactive (non-automatic) mode.  Write out\n";
+  printf "        a variety of diagnostic messages to the terminal.\n";
+  printf "        Log file messages are always verbose.\n";
+  printf "\n";
+  printf " DESCRIPTION\n";
+  printf "   This script is a Moab ID manager.  It associates the list of users allowed\n";
+  printf "   to use specific accounts with those accounts.\n";
+  printf "\n";
+  printf "   Automatic/interactive mode is determined by the existance of a tty.\n";
+  printf "\n";
+  printf " ALGORITHM\n";
+  printf "   0) All routine operational steps and any errors or inconsistencies are\n";
+  printf "      noted in a log file, \"$LOG_FILE\".  \n";
+  printf "   1) A master user list is defined to be those users that have a valid\n";
+  printf "      account as determined from the passwd file as well as a valid\n";
+  printf "      LDAP user entry.\n";
+  printf "   2) The list of Moab accounts (groups) is determined by parsing the the Moab\n";
+  printf "      configuration file \"$MOAB_CFG\".\n";
+  printf "   3) The list of users for each account is obtained from another LDAP query.\n";
+  printf "   4) If the LDAP servers from steps 1 or 3 are unavailable or the connection\n";
+  printf "      times out after $LDAP_TIMEOUT seconds, previous execution data is reused.\n";
+  printf "   5) Consistency checks compare local host vs. LDAP groups and users.\n";
+  printf "      Actual inconsistencies are recorded in separate log files in the\n";
+  printf "      \"$LOG_DIR\" directory with names like \"IDmgr-*.log\".\n";
+  printf "   6) Based on the previous steps a new mapping of users to accounts is\n";
+  printf "      generated.\n";
+  printf "   7) If there is no previous mapping, the new mapping is used and saved.\n";
+  printf "   8) If the mapping has not changed since the last execution, the previous\n";
+  printf "      maping is reused.\n";
+  printf "   9) If the mapping has changed, automatic/interactive mode determines the\n";
+  printf "      subsequent behavior:\n";
+  printf "         automatic:    proceed if the number of changes <= $MAX_CHANGES.\n";
+  printf "         interactive:  ask before proceeding with changes.\n";
+  printf "  10) If changes are made, previous data is saved in the directory\n";
+  printf "      \"$IDmgrBAK\".\n";
+  printf "      This directory is purged of any backup files older than $MAX_FILE_AGE days.\n";
+  print  "      Also the number of backup files is limited to $MAX_FILE_NUM copies.\n";
+  printf "\n";
+}
+
+sub logmsg {
+# &logmsg(level,message)
+# Write a message to the log file.
+#   message = message to be logged.
+  local $sec;
+  local $min;
+  local $hour;
+  local $mday;
+  local $mon;
+  local $year;
+  local $wday;
+  local $yday;
+  local $isdat;
+  local $message;
+  local $line;
+  local $seg_init=16;
+  local $seg_max=80;
+  local $seg_size;
+  local $word;
+  local $word_size;
+
+#  Get Arguments
+  local $level=shift(@_);
+  local $message=join(' ',@_);
+  local @msg_array=split(' ',$message); # array of individual words.
+
+  ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdat)=localtime(time);
+  $line=""; # initialize to null line
+  $seg_size=$seg_init; # start with size of time stamp
+  while( @msg_array ) {
+    $word=shift(@msg_array);
+    chomp($word);
+    $word_size=length($word);
+    if ( ($seg_size + $word_size ) < $seg_max || ($seg_size == $seg_init) ) {
+      $line=join(' ',$line,$word);
+      $seg_size += $word_size + 1;
+    } else {
+      $line=$line."\n               ";
+      $seg_size=$seg_init; # reset to size of time stamp
+      unshift(@msg_array,$word);
+    }
+  }
+  if ( $INT ) {
+    printf "%s %02d %02d:%02d:%02d%s\n",$months[$mon],$mday,$hour,$min,$sec,$line
+      if $level <= $VERBOSE;
+  }
+  printf LOG_FH "%s %02d %02d:%02d:%02d%s\n",
+    $months[$mon],$mday,$hour,$min,$sec,$line;
+}
+
+sub purge_files {
+  local $file="";
+  local $fileAge=0;
+  local @files=();
+  local $max_life=$_[0];
+  local $stem=$_[1];
+  local $suffix="";
+  @files=<$stem.*>;
+  while ( @files ) {
+    $file=pop(@files);
+    $suffix = $file; $suffix=~s/^$stem\.//;
+    next if $suffix!~/^[0-9]+$/; #skip if not an integer
+    $fileAge = -M $file;
+    $fileAge%=($fileAge+1); # reduce to integer value
+    if ( $fileAge  > $max_life ) {
+      &logmsg(1, "$file is $fileAge days old, max is $max_life, deleting file" );
+      next if $DEBUG;
+      unlink ($file);
+    }
+  }
+}
+
+sub purge_file_num {
+  my $file="";
+  my @files=();
+  my $max_num=$_[0];
+  my $stem=$_[1];
+  my $suffix="";
+  @files=<$stem.*>;
+  while ( @files ) {
+    $file=pop(@files);
+    $suffix = $file; $suffix=~s/^$stem\.//;
+    next if $suffix!~/^[0-9]+$/; #skip if not an integer
+    if ( $suffix > $max_num ) {
+      &logmsg(1, "$file is deleted, max number of files is $max_num" );
+      next if $DEBUG;
+      unlink ($file);
+    }
+  }
+}
+
+sub rename_files {
+  local $file="";
+  local $file2="";
+  local @files;
+  local $stem=$_[0];
+  local $suffix="";
+  local @suffix=();
+  @files=<$stem.*>;
+
+  foreach (@files) {
+    $suffix = $_; $suffix=~s/^$stem\.//;
+    next if $suffix!~/^[0-9]+$/;          # Skip if not an integer
+    push(@suffix, $suffix);
+  }
+  @suffix = sort {$b <=> $a} @suffix;     # Reverse numeric sort
+
+  if (@suffix) {
+    if ($#suffix > 0) {
+      $file="$stem.$suffix[$#suffix]";
+      $file2="$stem.$suffix[0]";
+      &logmsg(1, "Incrementing index for all backup files $file to $file2.");
+    } else {
+      $file="$stem.$_";
+      $suffix = $_ + 1;
+      $file2="$stem.$suffix";
+      &logmsg(1, "Rename $file to $file2.");
+    }
+  }
+
+  foreach ( @suffix ) {
+    $file="$stem.$_";
+    $suffix = $_ + 1;
+    $file2="$stem.$suffix";
+
+    next if $DEBUG;
+    rename $file,$file2;
+  }
+}
+
+sub send_notice {
+  my (
+        $subject,       # Subject line for the email
+        @emailbody      # message text.
+                    ) = @_;
+
+#   Purpose:
+#       Send the message contained in argument @emailbody to those
+#       on the notify list.
+#
+#   Preconditions:
+#       Global $NOTIFY must contain the list of email recipients.
+
+  local (*MAIL);
+
+  if ( open (MAIL, "| /bin/mail -s '$subject' $NOTIFY")) {
+
+    &logmsg(0, "Sending email to [$NOTIFY]" );
+    foreach (@emailbody) { printf MAIL $_; }
+    printf MAIL "\n*********\nSee logfile $LOG_FILE for details";
+    close (MAIL);
+
+  } else { &logmsg(0, "$prog:  Could not run /bin/mail, $!.\n"); }
+}
+
+sub set_diff {
+  local *set1=$_[0];
+  local *set2=$_[1];
+  local $item;
+  local @diff=();
+  foreach $item (@set1) {
+    next if &has_item($item,@diff);
+    next if &has_item($item,@set2);
+    push(@diff,$item);
+  }
+  @diff;
+}
+
+# CHH - The following subroutine may no longer be used
+sub set_union {
+  local *set;
+  local $item;
+  local @union=();
+  while (@_) {
+    *set=shift(@_);
+    foreach $item (@set) {
+      next if &has_item($item,@union);
+      push(@union,$item);
+    }
+  }
+  @union;
+}
+
+sub verify {
+  local $message=$_[0];
+  local $ans=1;
+  while (1) {
+    &logmsg(0,"$message (y/n):");
+    #printf "$message (y/n): ";
+    chop($answer=<STDIN>);
+    &logmsg(0,"Answer: $answer");
+    if ( $answer =~ /^n$/ ) {
+      $ans=0;
+      last;
+    } elsif ( $answer =~ /^y$/ ) {
+      last;
+    }
+    &logmsg(0,"Please enter y or n");
+  }
+  $ans;
+}
+
+sub uniq {
+#___________________________________________________________________
+# Remove any duplicate elements of an array.  Return pruned array.
+  my @array = @_;
+  my @tmp = ();
+  my $tmp;
+
+  if (!(@array)) { return @tmp; }
+  while (@array) {
+    $tmp = shift(@array); push(@tmp, $tmp);        # Save element
+    @array = grep(!/^$tmp$/, @array);              # Remove duplicates
+  }
+  return @tmp;
+}
+
+sub usage {
+   print STDERR "Usage: $prog [-dhv]\n";
+}
