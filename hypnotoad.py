@@ -2,7 +2,7 @@ import getopt, sys
 
 def main():
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "ho:v", ["help", "output="])
+        opts, args = getopt.getopt(sys.argv[1:], "vhc:", ["help", "config="])
     except getopt.GetoptError, err:
         print str(err)
         usage()
@@ -15,10 +15,8 @@ def main():
         elif o in ("-h", "--help"):
             usage()
             sys.exit()
-        elif o in ("-l", "--ldap-server"):
-        elif o in ("-c", "--cache-dir");
-        elif o in ("-o", "--log-output-file");
-        elif o in ("-e", "--reports-email");
+        elif o in ("-c", "--config"):
+            # do something
         else:
             assert False, "unhandled option"
 
