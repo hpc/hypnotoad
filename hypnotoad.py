@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import getopt, sys
 
 def load_hypnotoad_plugin(path, cls, name):
@@ -98,23 +100,20 @@ def read_config(filename):
     config.read(filename)
 
     # Try to get a required option to see if we have a valid config file.
-    log.debug("Using support dir: " % config.get('Basic Options', 'support_dir')
+    log.debug("Using support dir: " % config.get('Basic Options', 'support_dir'))
 
     return config
 
 def main():
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "vhc:", ["help", "config="])
+        opts, args = getopt.getopt(sys.argv[1:], "hc:", ["help", "config="])
     except getopt.GetoptError, err:
         print str(err)
         usage()
         sys.exit(2)
-    output = None
-    verbose = False
+    config = None
     for o, a in opts:
-        if o == "-v":
-            verbose = True
-        elif o in ("-h", "--help"):
+        if o in ("-h", "--help"):
             usage()
             sys.exit()
         elif o in ("-c", "--config"):
