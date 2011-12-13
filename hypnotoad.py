@@ -2,23 +2,21 @@ import getopt, sys
 
 def load_plugin(path, cls, name):
     """
-    Find all subclass of cls with name in py files located below path
+    Find the first subclass of cls with name in py files located below path
     (does look in sub directories)
  
     @param path: the path to the top level folder to walk
     @type path: str
-    @param cls: the base class that all subclasses should inherit from
+    @param cls: the base class that the subclass should inherit from
     @type cls: class
     @param name: the name of the class
     @param name: str
     @rtype: class
-    @return: the classes that are subclasses of cls with name
+    @return: the first class found which is a subclass of cls with name
     """
  
-    subclasses=[]
- 
     def look_for_subclass(modulename):
-        log.debug("searching %s" % (modulename))
+        log.debug("Searching %s" % (modulename))
         module=__import__(modulename)
  
         #walk the dictionaries to get to the last one
@@ -36,7 +34,7 @@ def load_plugin(path, cls, name):
             try:
                 if issubclass(entry, cls) and name == modulename:
                     log.debug("Found plugin:" + key)
-                    subclasses.append(entry)
+                    return entry
             except TypeError:
                 #this happens when a non-type is passed in to issubclass. We
                 #don't care as it can't be a subclass of Job if it isn't a
@@ -49,8 +47,9 @@ def load_plugin(path, cls, name):
                 path = os.path.join(root, name)
                 modulename = path.rsplit('.', 1)[0].replace('/', '.')
                 look_for_subclass(modulename)
- 
-    return subclasses
+
+    # We didn't find anything if we get here.
+    return None
 
 
 def main():
