@@ -1,6 +1,6 @@
 import getopt, sys
 
-def load_plugin(path, cls, name):
+def load_hypnotoad_plugin(path, cls, name):
     """
     Find the first subclass of cls with name in py files located below path
     (does look in sub directories)
@@ -51,6 +51,40 @@ def load_plugin(path, cls, name):
     # We didn't find anything if we get here.
     return None
 
+def send_input_to_output(path, input, output):
+    try:
+        datamodel = load_hypnotoad_plugin(path, DataModelPlugin, input)
+        scheduler = load_hypnotoad_plugin(path, SchedulerPlugin, output)
+
+        if datamodel is None:
+            log.error("Failed loading a data model plugin: " % input)
+            sys.exit(1)
+        if scheduler is None:
+            log.error("Failed loading a scheduler plugin: " % output)
+            sys.exit(1)
+
+        datamodel.setup()
+        scheduler.setup()
+
+        uinfo = datamodel.user_info()
+        pinfo = datamodel.priority_info()
+
+        if uinfo is None:
+            log.error("Data model user info is invalid.")
+            sys.exit(1)
+        if pinfo is None:
+            log.error("Data model priority info is invalid.")
+            sys.exit(1)
+
+        print scheduler.user_output(uinfo)
+        print scheduler.priority_output(pinfo)
+
+        datamodel.teardown() 
+        scheduler.teardown()
+
+    except:
+        print "Unexpected error:", sys.exc_info()[0]
+        raise
 
 def main():
     try:
@@ -71,6 +105,8 @@ def main():
             # do something
         else:
             assert False, "unhandled option"
+
+    send_input_to_output("./hypnotoad", "ldap", "moab")
 
 if __name__ == "__main__":
     main()
