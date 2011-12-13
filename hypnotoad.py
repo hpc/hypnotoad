@@ -75,16 +75,20 @@ def send_input_to_output(config):
     @param config: the hypnotoad config
     @type config: ConfigParser
     """
- 
+
+    plugin_path = config.get('Basic Options', 'support_dir')
+    input_plugin_name = config.get('Data Model', 'load')
+    output_plugin_name = config.get('Scheduler', 'load')
+
     try:
-        datamodel = load_hypnotoad_plugin(path, DataModelPlugin, input)
-        scheduler = load_hypnotoad_plugin(path, SchedulerPlugin, output)
+        datamodel = load_hypnotoad_plugin(plugin_path, DataModelPlugin, input_plugin_name)
+        scheduler = load_hypnotoad_plugin(plugin_path, SchedulerPlugin, output_plugin_name)
 
         if datamodel is None:
-            LOG.error("Failed loading a data model plugin: " % input)
+            LOG.error("Failed loading a data model plugin: " % input_plugin_name)
             sys.exit(1)
         if scheduler is None:
-            LOG.error("Failed loading a scheduler plugin: " % output)
+            LOG.error("Failed loading a scheduler plugin: " % output_plugin_name)
             sys.exit(1)
 
         datamodel.setup()
@@ -113,9 +117,6 @@ def send_input_to_output(config):
 def read_config(filename):
     config = ConfigParser.RawConfigParser()
     config.read(filename)
-
-    # Try to get a required option to see if we have a valid config file.
-    LOG.debug("Using support dir: " + config.get('Basic Options', 'support_dir'))
 
     return config
 
