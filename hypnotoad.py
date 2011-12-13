@@ -10,7 +10,7 @@ def load_hypnotoad_plugin(path, cls, name):
     @param cls: the base class that the subclass should inherit from
     @type cls: class
     @param name: the name of the class
-    @param name: str
+    @type name: str
     @rtype: class
     @return: the first class found which is a subclass of cls with name
     """
@@ -52,6 +52,17 @@ def load_hypnotoad_plugin(path, cls, name):
     return None
 
 def send_input_to_output(path, input, output):
+    """
+    Get the output of the input plugin and send it to the output plugin.
+ 
+    @param path: the path to the top level of the plugins directory
+    @type path: str
+    @param input: the name of the input plugin
+    @type input: str
+    @param output: the name of the output plugin
+    @type output: str
+    """
+ 
     try:
         datamodel = load_hypnotoad_plugin(path, DataModelPlugin, input)
         scheduler = load_hypnotoad_plugin(path, SchedulerPlugin, output)
