@@ -15,8 +15,10 @@ def main():
         elif o in ("-h", "--help"):
             usage()
             sys.exit()
-        elif o in ("-o", "--output"):
-            output = a
+        elif o in ("-l", "--ldap-server"):
+        elif o in ("-c", "--cache-dir");
+        elif o in ("-o", "--log-output-file");
+        elif o in ("-e", "--reports-email");
         else:
             assert False, "unhandled option"
 
