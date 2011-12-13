@@ -51,16 +51,12 @@ def load_hypnotoad_plugin(path, cls, name):
     # We didn't find anything if we get here.
     return None
 
-def send_input_to_output(path, input, output):
+def send_input_to_output(config):
     """
     Get the output of the input plugin and send it to the output plugin.
- 
-    @param path: the path to the top level of the plugins directory
-    @type path: str
-    @param input: the name of the input plugin
-    @type input: str
-    @param output: the name of the output plugin
-    @type output: str
+
+    @param config: the hypnotoad config
+    @type config: ConfigParser
     """
  
     try:
@@ -97,6 +93,15 @@ def send_input_to_output(path, input, output):
         print "Unexpected error:", sys.exc_info()[0]
         raise
 
+def read_config(filename):
+    config = ConfigParser.RawConfigParser(allow_no_value=True)
+    config.read(filename)
+
+    # Try to get a required option to see if we have a valid config file.
+    log.debug("Using support dir: " % config.get('Basic Options', 'support_dir')
+
+    return config
+
 def main():
     try:
         opts, args = getopt.getopt(sys.argv[1:], "vhc:", ["help", "config="])
@@ -113,11 +118,11 @@ def main():
             usage()
             sys.exit()
         elif o in ("-c", "--config"):
-            # do something
+            config = read_config(a)
         else:
             assert False, "unhandled option"
 
-    send_input_to_output("./hypnotoad", "ldap", "moab")
+    send_input_to_output(config)
 
 if __name__ == "__main__":
     main()
