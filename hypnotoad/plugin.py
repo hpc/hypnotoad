@@ -3,7 +3,7 @@
 #
 
 class data_model_plugin(object):
-    def setup(self):
+    def setup(self, config):
         """Called before the plugin is asked to do anything."""
         raise NotImplementedError
  
@@ -20,7 +20,7 @@ class data_model_plugin(object):
         raise NotImplementedError
 
 class scheduler_plugin(object):
-    def setup(self):
+    def setup(self, config):
         """Called before the plugin is asked to do anything."""
         raise NotImplementedError
  

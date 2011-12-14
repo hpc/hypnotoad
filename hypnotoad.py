@@ -89,12 +89,12 @@ def send_input_to_output(config):
         # now, run the setup part of each plugin
         for i in range(len(datamodel_plugins)):
             inst = datamodel_plugins[i]()
-            inst.setup()
+            inst.setup(config)
             loaded_datamodel_plugins.append(inst)
 
         for i in range(len(scheduler_plugins)):
             inst = scheduler_plugins[i]()
-            inst.setup()
+            inst.setup(config)
             loaded_scheduler_plugins.append(inst)
 
         LOG.debug("Loaded (" + str(len(loaded_datamodel_plugins)) + ") datamodel plugins.")

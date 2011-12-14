@@ -9,9 +9,14 @@ import logging
 LOG = logging.getLogger('root')
 
 class hpcldap(plugin.data_model_plugin):
-    def setup(self):
+    def setup(self, config):
         """Called before the plugin is asked to do anything."""
         LOG.debug("Got to hpcldap setup")
+
+        if config.getboolean('Data Model Options', 'ldap_plugin_enabled'):
+            LOG.debug("hpcldap plugin enabled")
+
+        self.config = config
 
     def teardown(self):
         """Called to allow the plugin to free anything."""

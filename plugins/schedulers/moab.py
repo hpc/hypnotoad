@@ -9,9 +9,14 @@ import logging
 LOG = logging.getLogger('root')
 
 class moab(plugin.scheduler_plugin):
-    def setup(self):
+    def setup(self, config):
         """Called before the plugin is asked to do anything."""
         LOG.debug("Got to moab setup")
+
+        if config.getboolean('Scheduler Options', 'moab_plugin_enabled'):
+            LOG.debug("moab plugin enabled")
+
+        self.config = config
 
     def teardown(self):
         """Called to allow the plugin to free anything."""
