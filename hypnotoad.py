@@ -2,8 +2,11 @@
 
 import logging
 import sys
+import os
 import getopt
 import ConfigParser
+
+from hypnotoad import data_model_plugin, scheduler_plugin
 
 def setup_logger(name):
     formatter = logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(module)s - %(message)s')
@@ -76,13 +79,13 @@ def send_input_to_output(config):
     @type config: ConfigParser
     """
 
-    plugin_path = config.get('Basic Options', 'support_dir')
+    plugin_path = config.get('Basic Options', 'plugins_dir')
     input_plugin_name = config.get('Data Model', 'load')
     output_plugin_name = config.get('Scheduler', 'load')
 
     try:
-        datamodel = load_hypnotoad_plugin(plugin_path, DataModelPlugin, input_plugin_name)
-        scheduler = load_hypnotoad_plugin(plugin_path, SchedulerPlugin, output_plugin_name)
+        datamodel = load_hypnotoad_plugin(plugin_path, data_model_plugin, input_plugin_name)
+        scheduler = load_hypnotoad_plugin(plugin_path, scheduler_plugin, output_plugin_name)
 
         if datamodel is None:
             LOG.error("Failed loading a data model plugin: " % input_plugin_name)

@@ -1,5 +1,10 @@
 #!/usr/bin/python
 
+#
+# This is where the ldap plugin should go.
+#
+
+
 # Load modules
 import ldap
 

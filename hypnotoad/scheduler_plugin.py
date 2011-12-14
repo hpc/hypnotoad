@@ -1,4 +1,4 @@
-class SchedulerPlugin(object):
+class scheduler_plugin(object):
     def setup(self):
         """Called before the plugin is asked to do anything."""
         raise NotImplementedError

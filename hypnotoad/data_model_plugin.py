@@ -1,4 +1,4 @@
-class DataModelPlugin(object):
+class data_model_plugin(object):
     def setup(self):
         """Called before the plugin is asked to do anything."""
         raise NotImplementedError
