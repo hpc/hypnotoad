@@ -124,7 +124,7 @@ Usage: hypnotoad [-hc]
 
 Options:
   -h, --help              show this help message and exit
-  -c FILE, --config=FILE  use the FILE specified for config
+  -c FILE, --config=FILE  use the FILE specified for configuration settings
     """
 
 def main():
@@ -134,6 +134,7 @@ def main():
         print str(err)
         usage()
         sys.exit(2)
+
     config = None
     for o, a in opts:
         if o in ("-h", "--help"):
@@ -142,9 +143,11 @@ def main():
         elif o in ("-c", "--config"):
             config = read_config(a)
         else:
+            usage()
             assert False, "unhandled option"
+            sys.exit(2)
 
-    # Use the default location
+    # Use a default location
     if config is None:
         config = read_config("hypnotoad.cfg")
 
