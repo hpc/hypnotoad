@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 #
 # An ldap data model plugin for hypnotoad.
 #
@@ -10,20 +8,20 @@ import ldap
 LOG = hypnolog.setup_logger('root')
 
 class hpcldap(plugin.data_model_plugin):
-    def setup():
+    def setup(self):
         """Called before the plugin is asked to do anything."""
         LOG.debug("Got to hpcldap setup")
 
-    def teardown():
+    def teardown(self):
         """Called to allow the plugin to free anything."""
         LOG.debug("Got to hpcldap teardown")
 
-    def user_info():
+    def user_info(self):
         """Look up user information in this data model."""
         LOG.debug("Got to hpcldap user_info")
         raise NotImplementedError
 
-    def priority_info():
+    def priority_info(self):
         """Look up priority information in this data model."""
         LOG.debug("Got to hpcldap priority_info")
 

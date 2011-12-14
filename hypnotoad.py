@@ -25,7 +25,6 @@ def load_hypnotoad_plugin(path, cls):
     plugins = []
  
     def look_for_subclass(modulename):
-        LOG.debug("Searching %s" % (modulename))
         module=__import__(modulename)
  
         #walk the dictionaries to get to the last one
@@ -42,7 +41,7 @@ def load_hypnotoad_plugin(path, cls):
  
             try:
                 if issubclass(entry, cls):
-                    LOG.debug("Found plugin:" + key)
+                    LOG.debug("Found plugin: " + key)
                     plugins.append(entry)
             except TypeError:
                 #this happens when a non-type is passed in to issubclass. We
@@ -69,21 +68,28 @@ def send_input_to_output(config):
     """
 
     plugin_path = config.get('Basic Options', 'plugins_dir')
+    loaded_plugins = []
 
     try:
-        datamodel = load_hypnotoad_plugin(plugin_path, plugin.data_model_plugin)
-        scheduler = load_hypnotoad_plugin(plugin_path, plugin.scheduler_plugin)
+        datamodel_plugins = load_hypnotoad_plugin(plugin_path, plugin.data_model_plugin)
+        scheduler_plugins = load_hypnotoad_plugin(plugin_path, plugin.scheduler_plugin)
 
-        if datamodel is None:
-            LOG.error("Failed loading a data model plugin: " + str(input_plugin_name))
+        if len(datamodel_plugins) < 1:
+            LOG.error("It doesn't look like we've found any data model plugins.")
             sys.exit(1)
-        if scheduler is None:
-            LOG.error("Failed loading a scheduler plugin: " + str(output_plugin_name))
+        if len(scheduler_plugins) < 1:
+            LOG.error("It doesn't look like we've found any scheduler plugins.")
             sys.exit(1)
 
-        datamodel.setup()
-        scheduler.setup()
+        for i, val in enumerate(datamodel_plugins):
+            loaded_plugins.append(datamodel_plugins[i]())
+            loaded_plugins[i].setup()
 
+        for i, val in enumerate(scheduler_plugins):
+            loaded_plugins.append(datamodel_plugins[i]())
+            loaded_plugins[i].setup()
+
+        '''
         uinfo = datamodel.user_info()
         pinfo = datamodel.priority_info()
 
@@ -99,7 +105,7 @@ def send_input_to_output(config):
 
         datamodel.teardown() 
         scheduler.teardown()
-
+        '''
     except:
         print "Unexpected error:", sys.exc_info()[0]
         raise
