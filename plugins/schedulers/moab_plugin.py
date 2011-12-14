@@ -8,7 +8,7 @@ import logging
 
 LOG = logging.getLogger('root')
 
-class moab(plugin.scheduler_plugin):
+class moab_plugin(plugin.scheduler_plugin):
     def setup(self, config):
         """Called before the plugin is asked to do anything."""
         LOG.debug("Got to moab plugin setup")

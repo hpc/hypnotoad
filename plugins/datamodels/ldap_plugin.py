@@ -8,7 +8,7 @@ import logging
 
 LOG = logging.getLogger('root')
 
-class ldap(plugin.data_model_plugin):
+class ldap_plugin(plugin.data_model_plugin):
     def setup(self, config):
         """Called before the plugin is asked to do anything."""
         LOG.debug("Got to ldap plugin setup")
@@ -17,7 +17,8 @@ class ldap(plugin.data_model_plugin):
             self.plugin_enabled = True
 
             ldap_url = config.get('Data Model Options', 'ldap_server')
-            self.ldap_ctx = ldap.initialize(ldap_url)
+            LOG.debug("Using ldap server: " + ldap_url)
+#            self.ldap_ctx = ldap.initialize(ldap_url)
 
             self.config = config
         else:
@@ -27,7 +28,7 @@ class ldap(plugin.data_model_plugin):
         """Called to allow the plugin to free anything."""
         if self.plugin_enabled:
             LOG.debug("Got to ldap plugin teardown")
-            self.ldap_ctx.unbind_s()
+#            self.ldap_ctx.unbind_s()
 
     def user_info(self):
         """Look up user information in this data model."""
