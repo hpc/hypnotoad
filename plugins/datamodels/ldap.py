@@ -8,27 +8,27 @@ import logging
 
 LOG = logging.getLogger('root')
 
-class hpcldap(plugin.data_model_plugin):
+class ldap(plugin.data_model_plugin):
     def setup(self, config):
         """Called before the plugin is asked to do anything."""
-        LOG.debug("Got to hpcldap setup")
+        LOG.debug("Got to ldap plugin setup")
 
         if config.getboolean('Data Model Options', 'ldap_plugin_enabled'):
-            LOG.debug("hpcldap plugin enabled")
+            LOG.debug("ldap plugin enabled")
 
         self.config = config
 
     def teardown(self):
         """Called to allow the plugin to free anything."""
-        LOG.debug("Got to hpcldap teardown")
+        LOG.debug("Got to ldap plugin teardown")
 
     def user_info(self):
         """Look up user information in this data model."""
-        LOG.debug("Got to hpcldap user_info")
+        LOG.debug("Got to ldap plugin user_info")
 
     def priority_info(self):
         """Look up priority information in this data model."""
-        LOG.debug("Got to hpcldap priority_info")
+        LOG.debug("Got to ldap plugin priority_info")
 """
 
 # Globals
