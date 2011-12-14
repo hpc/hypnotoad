@@ -55,7 +55,6 @@ def load_hypnotoad_plugin(path, cls):
                 modulename = path.rsplit('.', 1)[0].replace('/', '.')
                 look_for_subclass(modulename)
 
-    # We didn't find anything if we get here.
     return plugins
 
 def send_input_to_output(config):
