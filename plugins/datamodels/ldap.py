@@ -14,21 +14,30 @@ class ldap(plugin.data_model_plugin):
         LOG.debug("Got to ldap plugin setup")
 
         if config.getboolean('Data Model Options', 'ldap_plugin_enabled'):
-            LOG.debug("ldap plugin enabled")
+            self.plugin_enabled = True
 
-        self.config = config
+            ldap_url = config.get('Data Model Options', 'ldap_server')
+            self.ldap_ctx = ldap.initialize(ldap_url)
+
+            self.config = config
+        else:
+            self.plugin_enabled = False
 
     def teardown(self):
         """Called to allow the plugin to free anything."""
-        LOG.debug("Got to ldap plugin teardown")
+        if self.plugin_enabled:
+            LOG.debug("Got to ldap plugin teardown")
+            self.ldap_ctx.unbind_s()
 
     def user_info(self):
         """Look up user information in this data model."""
-        LOG.debug("Got to ldap plugin user_info")
+        if self.plugin_enabled:
+            LOG.debug("Got to ldap plugin user_info")
 
     def priority_info(self):
         """Look up priority information in this data model."""
-        LOG.debug("Got to ldap plugin priority_info")
+        if self.plugin_enabled:
+            LOG.debug("Got to ldap plugin priority_info")
 """
 
 # Globals
@@ -36,16 +45,6 @@ dc = "DC=hpc,DC=lanl,DC=gov"
 panfs_mnt_root = '/panfs/'
 shell_cmd_timeout = 30
 new_dir_perms = 700
-
-# LDAP settings
-yell_ldap_server = "ldap://hpcldap.lanl.gov"
-yell_ldap_ou="scratch"
-
-turq_ldap_server = "ldap://turq-accts.lanl.gov"
-turq_ldap_ou="scratch"
-
-red_ladp_server = "ldap://hpcldap.lanl.gov"
-red_ldap_ou="nfs"
 
 def get_ldap_users():
     d_ldap_users = {}
