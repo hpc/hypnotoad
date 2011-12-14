@@ -7,18 +7,7 @@ import getopt
 import ConfigParser
 
 from hypnotoad import data_model_plugin, scheduler_plugin
-
-def setup_logger(name):
-    formatter = logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(module)s - %(message)s')
-
-    handler = logging.StreamHandler()
-    handler.setFormatter(formatter)
-
-    logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)
-    logger.addHandler(handler)
-
-    return logger
+from hypnotoad import hypnolog
 
 def load_hypnotoad_plugin(path, cls, name):
     """
@@ -146,6 +135,6 @@ def main():
 
     send_input_to_output(config)
 
-LOG = setup_logger('root')
+LOG = hypnolog.setup_logger('root')
 if __name__ == "__main__":
     main()
