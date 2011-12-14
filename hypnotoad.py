@@ -6,10 +6,10 @@ import os
 import getopt
 import ConfigParser
 
-from hypnotoad import data_model_plugin, scheduler_plugin
+from hypnotoad import plugin
 from hypnotoad import hypnolog
 
-def load_hypnotoad_plugin(path, cls, name):
+def load_hypnotoad_plugin(path, cls):
     """
     Find the first subclass of cls with name in py files located below path
     (does look in sub directories)
@@ -18,11 +18,11 @@ def load_hypnotoad_plugin(path, cls, name):
     @type path: str
     @param cls: the base class that the subclass should inherit from
     @type cls: class
-    @param name: the name of the class
-    @type name: str
-    @rtype: class
-    @return: the first class found which is a subclass of cls with name
+    @rtype: arr
+    @return: all plugins with subclass of cls
     """
+
+    plugins = []
  
     def look_for_subclass(modulename):
         LOG.debug("Searching %s" % (modulename))
@@ -41,9 +41,9 @@ def load_hypnotoad_plugin(path, cls, name):
                 continue
  
             try:
-                if issubclass(entry, cls) and name == modulename:
+                if issubclass(entry, cls):
                     LOG.debug("Found plugin:" + key)
-                    return entry
+                    plugins.append(entry)
             except TypeError:
                 #this happens when a non-type is passed in to issubclass. We
                 #don't care as it can't be a subclass of Job if it isn't a
@@ -58,7 +58,7 @@ def load_hypnotoad_plugin(path, cls, name):
                 look_for_subclass(modulename)
 
     # We didn't find anything if we get here.
-    return None
+    return plugins
 
 def send_input_to_output(config):
     """
@@ -69,12 +69,10 @@ def send_input_to_output(config):
     """
 
     plugin_path = config.get('Basic Options', 'plugins_dir')
-    input_plugin_name = config.get('Data Model', 'load')
-    output_plugin_name = config.get('Scheduler', 'load')
 
     try:
-        datamodel = load_hypnotoad_plugin(plugin_path, data_model_plugin, input_plugin_name)
-        scheduler = load_hypnotoad_plugin(plugin_path, scheduler_plugin, output_plugin_name)
+        datamodel = load_hypnotoad_plugin(plugin_path, plugin.data_model_plugin)
+        scheduler = load_hypnotoad_plugin(plugin_path, plugin.scheduler_plugin)
 
         if datamodel is None:
             LOG.error("Failed loading a data model plugin: " + str(input_plugin_name))

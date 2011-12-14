@@ -1,15 +1,32 @@
 #!/usr/bin/python
 
 #
-# This is where the ldap plugin should go.
+# An ldap data model plugin for hypnotoad.
 #
 
-
-# Load modules
+from hypnotoad import hypnolog, plugin
 import ldap
 
-#
-# General Set up 
+LOG = hypnolog.setup_logger('root')
+
+class hpcldap(plugin.data_model_plugin):
+    def setup():
+        """Called before the plugin is asked to do anything."""
+        LOG.debug("Got to hpcldap setup")
+
+    def teardown():
+        """Called to allow the plugin to free anything."""
+        LOG.debug("Got to hpcldap teardown")
+
+    def user_info():
+        """Look up user information in this data model."""
+        LOG.debug("Got to hpcldap user_info")
+        raise NotImplementedError
+
+    def priority_info():
+        """Look up priority information in this data model."""
+        LOG.debug("Got to hpcldap priority_info")
+
 
 # Globals
 dc = "DC=hpc,DC=lanl,DC=gov"
