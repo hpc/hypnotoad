@@ -2,10 +2,11 @@
 # An ldap data model plugin for hypnotoad.
 #
 
-from hypnotoad import hypnolog, plugin
+from hypnotoad import plugin
 import ldap
+import logging
 
-LOG = hypnolog.setup_logger('root')
+LOG = logging.getLogger('root')
 
 class hpcldap(plugin.data_model_plugin):
     def setup(self):

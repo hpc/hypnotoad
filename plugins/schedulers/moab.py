@@ -2,10 +2,11 @@
 # A moab scheduler plugin for hypnotoad.
 #
 
-from hypnotoad import hypnolog, plugin
+from hypnotoad import plugin
 import ldap
+import logging
 
-LOG = hypnolog.setup_logger('root')
+LOG = logging.getLogger('root')
 
 class moab(plugin.scheduler_plugin):
     def setup(self):
