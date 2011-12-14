@@ -81,12 +81,15 @@ def send_input_to_output(config):
             LOG.error("It doesn't look like we've found any scheduler plugins.")
             sys.exit(1)
 
-        for i, val in enumerate(datamodel_plugins):
+        LOG.debug("Found (" + str(len(datamodel_plugins)) + ") datamodel plugins.")
+        LOG.debug("Found (" + str(len(scheduler_plugins)) + ") scheduler plugins.")
+
+        for i in range(len(datamodel_plugins)):
             loaded_plugins.append(datamodel_plugins[i]())
             loaded_plugins[i].setup()
 
-        for i, val in enumerate(scheduler_plugins):
-            loaded_plugins.append(datamodel_plugins[i]())
+        for i in range(len(scheduler_plugins)):
+            loaded_plugins.append(scheduler_plugins[i]())
             loaded_plugins[i].setup()
 
         '''
