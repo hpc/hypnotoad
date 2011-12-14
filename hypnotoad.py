@@ -6,8 +6,7 @@ import os
 import getopt
 import ConfigParser
 
-from hypnotoad import plugin
-from hypnotoad import hypnolog
+from hypnotoad import hypnolog, plugin
 
 def load_hypnotoad_plugin(path, cls):
     """
@@ -118,6 +117,15 @@ def read_config(filename):
     config.read(filename)
 
     return config
+
+def usage():
+    print """
+Usage: hypnotoad [-hc]
+
+Options:
+  -h, --help              show this help message and exit
+  -c FILE, --config=FILE  use the FILE specified for config
+    """
 
 def main():
     try:
