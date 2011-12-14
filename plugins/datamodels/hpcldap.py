@@ -20,7 +20,6 @@ class hpcldap(plugin.data_model_plugin):
     def user_info(self):
         """Look up user information in this data model."""
         LOG.debug("Got to hpcldap user_info")
-        raise NotImplementedError
 
     def priority_info(self):
         """Look up priority information in this data model."""

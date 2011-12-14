@@ -17,11 +17,10 @@ class moab(plugin.scheduler_plugin):
         """Called to allow the plugin to free anything."""
         LOG.debug("Got to moab teardown")
 
-    def user_output(self):
+    def user_output(self, outputs):
         """Return user information formatted for moab."""
         LOG.debug("Got to moab user_output")
-        raise NotImplementedError
 
-    def priority_output(self):
+    def priority_output(self, outputs):
         """Return priority information formatted for moab."""
         LOG.debug("Got to moab priority_output")

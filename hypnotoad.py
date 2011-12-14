@@ -66,9 +66,16 @@ def send_input_to_output(config):
     """
 
     plugin_path = config.get('Basic Options', 'plugins_dir')
-    loaded_plugins = []
+
+    loaded_datamodel_plugins = []
+    loaded_scheduler_plugins = []
+
+    datamodel_user_outputs = []
+    datamodel_priority_outputs = []
 
     try:
+
+        # first, lets find the plugins
         datamodel_plugins = load_hypnotoad_plugin(plugin_path, plugin.data_model_plugin)
         scheduler_plugins = load_hypnotoad_plugin(plugin_path, plugin.scheduler_plugin)
 
@@ -79,35 +86,36 @@ def send_input_to_output(config):
             LOG.error("It doesn't look like we've found any scheduler plugins.")
             sys.exit(1)
 
+        # now, run the setup part of each plugin
         for i in range(len(datamodel_plugins)):
             inst = datamodel_plugins[i]()
             inst.setup()
-            loaded_plugins.append(inst)
+            loaded_datamodel_plugins.append(inst)
 
         for i in range(len(scheduler_plugins)):
             inst = scheduler_plugins[i]()
             inst.setup()
-            loaded_plugins.append(inst)
+            loaded_scheduler_plugins.append(inst)
 
-        LOG.debug("Loaded (" + str(len(loaded_plugins)) + ") total plugins.")
+        LOG.debug("Loaded (" + str(len(loaded_datamodel_plugins)) + ") datamodel plugins.")
+        LOG.debug("Loaded (" + str(len(loaded_scheduler_plugins)) + ") scheduler plugins.")
 
-        '''
-        uinfo = datamodel.user_info()
-        pinfo = datamodel.priority_info()
+        # lets get everything from the data models
+        for i in range(len(loaded_datamodel_plugins)):
+            datamodel_user_outputs.append(loaded_datamodel_plugins[i].user_info())
+            datamodel_priority_outputs.append(loaded_datamodel_plugins[i].priority_info())
 
-        if uinfo is None:
-            LOG.error("Data model user info is invalid.")
-            sys.exit(1)
-        if pinfo is None:
-            LOG.error("Data model priority info is invalid.")
-            sys.exit(1)
+        # now we can send the output of the data models to each scheduler plugin
+        for i in range(len(loaded_scheduler_plugins)):
+            loaded_scheduler_plugins[i].user_output(datamodel_user_outputs)
+            loaded_scheduler_plugins[i].priority_output(datamodel_priority_outputs)
 
-        print scheduler.user_output(uinfo)
-        print scheduler.priority_output(pinfo)
+        # finally, let the plugins cleanup
+        for i in range(len(loaded_datamodel_plugins)):
+            loaded_datamodel_plugins[i].teardown()
 
-        datamodel.teardown() 
-        scheduler.teardown()
-        '''
+        for i in range(len(loaded_scheduler_plugins)):
+            loaded_scheduler_plugins[i].teardown()
     except:
         print "Unexpected error:", sys.exc_info()[0]
         raise

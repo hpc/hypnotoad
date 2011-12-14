@@ -28,10 +28,10 @@ class scheduler_plugin(object):
         """Called to allow the plugin to free anything."""
         raise NotImplementedError
 
-    def user_output(self):
+    def user_output(self, outputs):
         """Return user information formatted for this scheduler."""
         raise NotImplementedError
 
-    def priority_output(self):
+    def priority_output(self, outputs):
         """Return priority information formatted for this scheduler."""
         raise NotImplementedError
