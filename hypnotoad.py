@@ -163,4 +163,6 @@ def main():
 
 LOG = hypnolog.setup_logger('root')
 if __name__ == "__main__":
+    LOG.debug("Execution started.")
     main()
+    LOG.debug("Execution finished.")
