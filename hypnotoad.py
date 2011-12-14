@@ -26,14 +26,14 @@ def load_hypnotoad_plugin(path, cls):
     def look_for_subclass(modulename):
         module=__import__(modulename)
  
-        #walk the dictionaries to get to the last one
+        # walk the dictionaries to get to the last one
         d=module.__dict__
         for m in modulename.split('.')[1:]:
             d=d[m].__dict__
  
-        #look through this dictionary for things
-        #that are subclass of cls
-        #but are not cls itself
+        # look through this dictionary for things
+        # that are subclass of cls
+        # but are not cls itself
         for key, entry in d.items():
             if key == cls.__name__:
                 continue
@@ -43,9 +43,9 @@ def load_hypnotoad_plugin(path, cls):
                     LOG.debug("Found plugin: " + key)
                     plugins.append(entry)
             except TypeError:
-                #this happens when a non-type is passed in to issubclass. We
-                #don't care as it can't be a subclass of cls if it isn't a
-                #type
+                # this happens when a non-type is passed in to issubclass. We
+                # don't care as it can't be a subclass of cls if it isn't a
+                # type
                 continue
  
     for root, dirs, files in os.walk(path):
