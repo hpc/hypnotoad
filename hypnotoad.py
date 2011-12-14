@@ -77,10 +77,10 @@ def send_input_to_output(config):
         scheduler = load_hypnotoad_plugin(plugin_path, scheduler_plugin, output_plugin_name)
 
         if datamodel is None:
-            LOG.error("Failed loading a data model plugin: " % input_plugin_name)
+            LOG.error("Failed loading a data model plugin: " + str(input_plugin_name))
             sys.exit(1)
         if scheduler is None:
-            LOG.error("Failed loading a scheduler plugin: " % output_plugin_name)
+            LOG.error("Failed loading a scheduler plugin: " + str(output_plugin_name))
             sys.exit(1)
 
         datamodel.setup()
