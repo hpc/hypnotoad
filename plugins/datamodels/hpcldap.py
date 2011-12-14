@@ -29,7 +29,7 @@ class hpcldap(plugin.data_model_plugin):
     def priority_info(self):
         """Look up priority information in this data model."""
         LOG.debug("Got to hpcldap priority_info")
-
+"""
 
 # Globals
 dc = "DC=hpc,DC=lanl,DC=gov"
@@ -301,6 +301,4 @@ def panfs_info_integrity(d_realm_vol_users, d_ldap_users):
     verbose("Duplicate users found in realm: " + str(d_realm_dupe_user_vols) + "\n")
     verbose("Invalid usernames found in realm: " + str(d_realm_vol_invalid_users) + "\n")
 
-####################### MAIN #######################
-if __name__ == "__main__":
-    main()
+"""
