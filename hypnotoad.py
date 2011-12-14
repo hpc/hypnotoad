@@ -32,8 +32,8 @@ def load_hypnotoad_plugin(path, cls):
             d=d[m].__dict__
  
         #look through this dictionary for things
-        #that are subclass of Job
-        #but are not Job itself
+        #that are subclass of cls
+        #but are not cls itself
         for key, entry in d.items():
             if key == cls.__name__:
                 continue
@@ -44,7 +44,7 @@ def load_hypnotoad_plugin(path, cls):
                     plugins.append(entry)
             except TypeError:
                 #this happens when a non-type is passed in to issubclass. We
-                #don't care as it can't be a subclass of Job if it isn't a
+                #don't care as it can't be a subclass of cls if it isn't a
                 #type
                 continue
  
