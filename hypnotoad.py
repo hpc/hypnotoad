@@ -70,8 +70,7 @@ def send_input_to_output(config):
     loaded_datamodel_plugins = []
     loaded_scheduler_plugins = []
 
-    datamodel_user_outputs = []
-    datamodel_priority_outputs = []
+    datamodel_outputs = []
 
     try:
 
@@ -102,13 +101,11 @@ def send_input_to_output(config):
 
         # lets get everything from the data models
         for i in range(len(loaded_datamodel_plugins)):
-            datamodel_user_outputs.append(loaded_datamodel_plugins[i].user_info())
-            datamodel_priority_outputs.append(loaded_datamodel_plugins[i].priority_info())
+            datamodel_outputs.append(loaded_datamodel_plugins[i].get_model())
 
         # now we can send the output of the data models to each scheduler plugin
         for i in range(len(loaded_scheduler_plugins)):
-            loaded_scheduler_plugins[i].user_output(datamodel_user_outputs)
-            loaded_scheduler_plugins[i].priority_output(datamodel_priority_outputs)
+            loaded_scheduler_plugins[i].append_model(datamodel_outputs)
 
         # finally, let the plugins cleanup
         for i in range(len(loaded_datamodel_plugins)):
