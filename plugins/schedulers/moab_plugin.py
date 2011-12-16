@@ -22,10 +22,6 @@ class moab_plugin(plugin.scheduler_plugin):
         """Called to allow the plugin to free anything."""
         LOG.debug("Got to moab plugin teardown")
 
-    def user_output(self, outputs):
-        """Return user information formatted for moab."""
-        LOG.debug("Got to moab plugin user_output")
-
-    def priority_output(self, outputs):
-        """Return priority information formatted for moab."""
-        LOG.debug("Got to moab plugin priority_output")
+    def append_model(self, model):
+        """Handled a model appended to this output."""
+        LOG.debug("Got to moab plugin append_model.")

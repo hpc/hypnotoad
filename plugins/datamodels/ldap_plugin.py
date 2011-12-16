@@ -30,15 +30,11 @@ class ldap_plugin(plugin.data_model_plugin):
             LOG.debug("Got to ldap plugin teardown")
 #            self.ldap_ctx.unbind_s()
 
-    def user_info(self):
-        """Look up user information in this data model."""
+    def get_model(self):
+        """Look up information in this data model."""
         if self.plugin_enabled:
-            LOG.debug("Got to ldap plugin user_info")
+            LOG.debug("Got to ldap plugin get_model")
 
-    def priority_info(self):
-        """Look up priority information in this data model."""
-        if self.plugin_enabled:
-            LOG.debug("Got to ldap plugin priority_info")
 """
 
 # Globals
