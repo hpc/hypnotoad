@@ -11,12 +11,8 @@ class data_model_plugin(object):
         """Called to allow the plugin to free anything."""
         raise NotImplementedError
  
-    def user_info(self):
-        """Look up user information in this data model."""
-        raise NotImplementedError
-
-    def priority_info(self):
-        """Look up priority information in this data model."""
+    def get_model(self):
+        """Look up information in this data model."""
         raise NotImplementedError
 
 class scheduler_plugin(object):
@@ -28,10 +24,6 @@ class scheduler_plugin(object):
         """Called to allow the plugin to free anything."""
         raise NotImplementedError
 
-    def user_output(self, outputs):
-        """Return user information formatted for this scheduler."""
-        raise NotImplementedError
-
-    def priority_output(self, outputs):
-        """Return priority information formatted for this scheduler."""
+    def append_model(self, model):
+        """Return the model information formatted for this scheduler."""
         raise NotImplementedError
