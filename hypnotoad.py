@@ -75,26 +75,25 @@ def send_input_to_output(config):
     try:
 
         # first, lets find the plugins
-        datamodel_plugins = load_hypnotoad_plugin(plugin_path, plugin.data_model_plugin)
-        scheduler_plugins = load_hypnotoad_plugin(plugin_path, plugin.scheduler_plugin)
+        def make_plugins(type): return load_hypnotoad_plugin(plugin_path, type)
+        datamodel_plugins = make_plugins(plugin.data_model_plugin)
+        scheduler_plugins = make_plugins(plugin.scheduler_plugin)
 
-        if len(datamodel_plugins) < 1:
-            LOG.error("It doesn't look like we've found any data model plugins.")
-            sys.exit(1)
-        if len(scheduler_plugins) < 1:
-            LOG.error("It doesn't look like we've found any scheduler plugins.")
-            sys.exit(1)
+        # Now check to see if we have valid plugins.
+        def check_plugins(plugins):
+            if len(plugins) < 1:
+                LOG.error("It looks like we had trouble loading plugins.")
+                sys.exit(1)
+        map(check_plugins, [datamodel_plugins, scheduler_plugins])
 
         # now, run the setup part of each plugin
-        for i in range(len(datamodel_plugins)):
-            inst = datamodel_plugins[i]()
-            inst.setup(config)
-            loaded_datamodel_plugins.append(inst)
-
-        for i in range(len(scheduler_plugins)):
-            inst = scheduler_plugins[i]()
-            inst.setup(config)
-            loaded_scheduler_plugins.append(inst)
+        def setup_plugins(plugins, out):
+            for i in range(len(plugins)):
+                inst = plugins[i]()
+                inst.setup(config)
+                out.append(inst)
+        setup_plugins(datamodel_plugins, loaded_datamodel_plugins)
+        setup_plugins(scheduler_plugins, loaded_scheduler_plugins)
 
         LOG.debug("Loaded (" + str(len(loaded_datamodel_plugins)) + ") datamodel plugins.")
         LOG.debug("Loaded (" + str(len(loaded_scheduler_plugins)) + ") scheduler plugins.")
