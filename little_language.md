@@ -1,5 +1,5 @@
-Scheduler Little Language v0.1
-==============================
+Scheduler Little Language
+=========================
 This file is a draft of the attributes contained in the data that datamodel
 plugins will send to scheduler plugins. This document is subject to drastically
 change as the initial model is implemented. Relationships between bullet points
