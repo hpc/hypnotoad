@@ -1,12 +1,11 @@
-# Scheduler Little Language v0.1
-# Jon Bringhurst <jonb@lanl.gov>
+Scheduler Little Language v0.1
+==============================
+This file is a draft of the attributes contained in the data that datamodel
+plugins will send to scheduler plugins. This document is subject to drastically
+change as the initial model is implemented. Relationships between bullet points
+and sub-bullet points are simply nested dictionaries with no cycles allowed.
 
-# This file is a draft of the attributes contained in the data that datamodel
-# plugins will send to scheduler plugins. This document is subject to drastically
-# change as the initial model is implemented. Relationships between bullet points
-# and sub-bullet points are simply nested dictionaries with no cycles allowed.
-#
-# The prefered method for serializing this data format is JSON.
+The prefered method for serializing this data format is JSON.
 
 * model
   * little_lang_entry
@@ -39,5 +38,3 @@
     * priority_jobsize_float
     * priority_partition_float
     * priority_qos_name_array
-
-# EOF
