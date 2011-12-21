@@ -9,6 +9,10 @@ import logging
 LOG = logging.getLogger('root')
 
 class ldap_plugin(plugin.data_model_plugin):
+    ldap_dc  = None
+    ldap_url = None
+    ldap_ou  = None
+
     def setup(self, config):
         """Called before the plugin is asked to do anything."""
         LOG.debug("Got to ldap plugin setup")
@@ -17,7 +21,12 @@ class ldap_plugin(plugin.data_model_plugin):
             self.plugin_enabled = True
 
             ldap_url = config.get('Data Model Options', 'ldap_server')
-            LOG.debug("Using ldap server: " + ldap_url)
+            ldap_dc  = config.get('Data Model Options', 'ldap_dc')
+            ldap_ou  = config.get('Data Model Options', 'ldap_ou')
+
+            LOG.debug("Using ldap URL: " + ldap_url)
+            LOG.debug("Using ldap DC:  " + ldap_dc)
+            LOG.debug("Using ldap OU:  " + ldap_ou)
 #            self.ldap_ctx = ldap.initialize(ldap_url)
 
             self.config = config
