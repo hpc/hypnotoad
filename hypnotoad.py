@@ -96,8 +96,8 @@ def send_input_to_output(config):
         setup_plugins(datamodel_plugins, loaded_datamodel_plugins)
         setup_plugins(scheduler_plugins, loaded_scheduler_plugins)
 
-        LOG.debug("Loaded (" + str(len(loaded_datamodel_plugins)) + ") datamodel plugins.")
-        LOG.debug("Loaded (" + str(len(loaded_scheduler_plugins)) + ") scheduler plugins.")
+        LOG.debug("Found " + str(len(loaded_datamodel_plugins)) + " datamodel plugins.")
+        LOG.debug("Found " + str(len(loaded_scheduler_plugins)) + " scheduler plugins.")
 
         # lets get everything from the data models
         for i in range(len(loaded_datamodel_plugins)):
