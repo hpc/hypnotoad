@@ -132,8 +132,12 @@ Options:
     """
 
 def version():
-    LOG.debug(os.popen("git rev-parse HEAD").read())
-    LOG.debug(os.popen("git log --branches --not --remotes").read())
+    LOG.debug("git:" + os.popen("git rev-parse HEAD").read().strip())
+
+    uncommits = os.popen("git log --branches --not --remotes").read().strip()
+
+    if len(str(uncommits)) > 0:
+        LOG.debug(uncommits)
 
 def main():
     version()
