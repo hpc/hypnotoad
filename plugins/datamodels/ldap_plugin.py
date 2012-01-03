@@ -15,10 +15,10 @@ class ldap_plugin(plugin.data_model_plugin):
 
     def setup(self, config):
         """Called before the plugin is asked to do anything."""
-        LOG.debug("Got to ldap plugin setup")
 
         if config.getboolean('Data Model Options', 'ldap_plugin_enabled'):
             self.plugin_enabled = True
+            LOG.debug("LDAP plugin enabled")
 
             ldap_url = config.get('Data Model Options', 'ldap_server')
             ldap_dc  = config.get('Data Model Options', 'ldap_dc')
@@ -38,12 +38,14 @@ class ldap_plugin(plugin.data_model_plugin):
 
     def teardown(self):
         """Called to allow the plugin to free anything."""
+
         if self.plugin_enabled:
             LOG.debug("Got to ldap plugin teardown")
 #            self.ldap_ctx.unbind_s()
 
     def get_model(self):
         """Look up information in this data model."""
+
         if self.plugin_enabled:
             LOG.debug("Got to ldap plugin get_model")
 

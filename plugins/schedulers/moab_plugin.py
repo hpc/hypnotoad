@@ -11,17 +11,23 @@ LOG = logging.getLogger('root')
 class moab_plugin(plugin.scheduler_plugin):
     def setup(self, config):
         """Called before the plugin is asked to do anything."""
-        LOG.debug("Got to moab plugin setup")
 
         if config.getboolean('Scheduler Options', 'moab_plugin_enabled'):
+            self.plugin_enabled = True
             LOG.debug("moab plugin enabled")
 
-        self.config = config
+            self.config = config
+        else:
+            self.plugin_enabled = False
 
     def teardown(self):
         """Called to allow the plugin to free anything."""
-        LOG.debug("Got to moab plugin teardown")
+
+        if self.plugin_enabled:
+            LOG.debug("Got to moab plugin teardown")
 
     def append_model(self, model):
         """Handled a model appended to this output."""
-        LOG.debug("Got to moab plugin append_model.")
+
+        if self.plugin_enabled:
+            LOG.debug("Got to moab plugin append_model.")
