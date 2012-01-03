@@ -22,11 +22,14 @@ class ldap_plugin(plugin.data_model_plugin):
 
             ldap_url = config.get('Data Model Options', 'ldap_server')
             ldap_dc  = config.get('Data Model Options', 'ldap_dc')
-            ldap_ou  = config.get('Data Model Options', 'ldap_ou')
 
-            LOG.debug("Using ldap URL: " + ldap_url)
-            LOG.debug("Using ldap DC:  " + ldap_dc)
-            LOG.debug("Using ldap OU:  " + ldap_ou)
+            ldap_ou_group = config.get('Data Model Options', 'ldap_ou_group')
+            ldap_ou_user = config.get('Data Model Options', 'ldap_ou_user')
+
+            LOG.debug("URL: " + ldap_url)
+            LOG.debug("Base DC:  " + ldap_dc)
+            LOG.debug("DN for groups:  DC=" + ldap_ou_group + "," + ldap_dc)
+            LOG.debug("DN for users:  DC=" + ldap_ou_user + "," + ldap_dc)
 #            self.ldap_ctx = ldap.initialize(ldap_url)
 
             self.config = config

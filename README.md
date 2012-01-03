@@ -57,13 +57,13 @@ The prefered method for serializing this data format is JSON.
     * priority_weight_fairshare      # weight to place on fairshare calculation
     * priority_weight_job_size       # weight to place on job size
     * priority_weight_partition      # weight to place on job location
-    * priotity_weight_qos            # weight to place on QOS
+    * priority_weight_qos            # weight to place on QOS
     
   * group_entry                      # specific to groups on the cluster
-    * short_name_string              # the unix short-name of the group
+    * short_name_string              # unix short-name of the group
     * user_member_short_name_array   # unix short-names of users in this group
     * group_member_short_name_array  # unix short-names of groups in this group (non-cyclic)
-    * group_id_integer               # the unix gid of this group
+    * group_id_integer               # unix gid of this group
     * priority_fairshare_float       # fairshare priority target
     * priority_qos_name_array        # qos available to this group
 
