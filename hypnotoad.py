@@ -6,6 +6,7 @@ import os
 import getopt
 import ConfigParser
 
+from subprocess import Popen, PIPE
 from hypnotoad import hypnolog, plugin
 
 def load_hypnotoad_plugin(path, cls):
@@ -134,9 +135,11 @@ Options:
 def version():
     LOG.debug("git:" + os.popen("git rev-parse HEAD").read().strip())
 
-    uncommits = os.popen("git log --branches --not --remotes").read().strip()
-    if len(str(uncommits)) > 0:
-        LOG.debug(uncommits)
+    uncommits = Popen("git log --branches --not --remotes", shell=True, stdout=PIPE)
+    for line in uncommits.stdout:
+        line = line.strip()
+        if len(line) > 0:
+            LOG.debug("DIRTY: " + line)
 
 def main():
     version()
