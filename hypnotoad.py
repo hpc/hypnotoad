@@ -131,7 +131,13 @@ Options:
   -c FILE, --config=FILE  use the FILE specified for configuration settings
     """
 
+def version():
+    LOG.debug(os.popen("git rev-parse HEAD").read())
+    LOG.debug(os.popen("git log --branches --not --remotes").read())
+
 def main():
+    version()
+
     try:
         opts, args = getopt.getopt(sys.argv[1:], "hc:", ["help", "config="])
     except getopt.GetoptError, err:
