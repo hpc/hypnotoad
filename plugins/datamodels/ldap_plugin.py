@@ -4,12 +4,10 @@
 
 import ldap
 import logging
-import pprint
 
 from hypnotoad import plugin
 
 LOG = logging.getLogger('root')
-PP = pprint.PrettyPrinter(indent=4)
 
 class ldap_plugin(plugin.data_model_plugin):
     ldap_dc  = None
@@ -93,7 +91,6 @@ class ldap_plugin(plugin.data_model_plugin):
                     'priority_fairshare_float': attrs['hpcDRMshare'],
                 }})
 
-        #PP.pprint(model)
         return model
 
 # EOF
