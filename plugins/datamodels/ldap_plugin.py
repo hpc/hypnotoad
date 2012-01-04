@@ -67,12 +67,12 @@ class ldap_plugin(plugin.data_model_plugin):
                 dn, attrs = u
                 LOG.debug("Found user with DN: " + dn) 
                 model.append({'user_entry': {
-                    'short_name_string': attrs['uid'],
-                    'full_name_string': attrs['cn'],
-                    'group_id_integer': attrs['gidNumber'],
-                    'user_id_integer': attrs['uidNumber'],
-                    'home_directory_string': attrs['homeDirectory'],
-                    'login_shell_string': attrs['loginShell'],
+                    'short_name_string': attrs['uid'][0],
+                    'full_name_string': attrs['cn'][0],
+                    'group_id_integer': attrs['gidNumber'][0],
+                    'user_id_integer': attrs['uidNumber'][0],
+                    'home_directory_string': attrs['homeDirectory'][0],
+                    'login_shell_string': attrs['loginShell'][0],
                     'priority_fairshare_float': '',
                     'priority_qos_name_array': ''
                 }})
@@ -83,8 +83,8 @@ class ldap_plugin(plugin.data_model_plugin):
                 dn, attrs = g
                 LOG.debug("Found group with DN: " + dn)
                 model.append({'group_entry': {
-                    'short_name_string': attrs['cn'],
-                    'priority_fairshare_float': attrs['hpcDRMshare'],
+                    'short_name_string': attrs['cn'][0],
+                    'priority_fairshare_float': attrs['hpcDRMshare'][0],
                 }})
 
         return model
