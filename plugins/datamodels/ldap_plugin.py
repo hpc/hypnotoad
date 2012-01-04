@@ -30,7 +30,15 @@ class ldap_plugin(plugin.data_model_plugin):
             LOG.debug("Base DC:  " + ldap_dc)
             LOG.debug("DN for groups:  DC=" + ldap_ou_group + "," + ldap_dc)
             LOG.debug("DN for users:  DC=" + ldap_ou_user + "," + ldap_dc)
-#            self.ldap_ctx = ldap.initialize(ldap_url)
+
+            self.ldap_ctx = ldap.initialize(ldap_url)
+
+#self.ldap_ctx.search_s('ou=Testing,dc=stroeder,dc=de',ldap.SCOPE_SUBTREE,'(cn=fred*)',['cn','mail'])
+#[('cn=Fred Feuerstein,ou=Testing,dc=stroeder,dc=de', {'cn': ['Fred Feuerstein']})]
+# r = l.search_s('ou=Testing,dc=stroeder,dc=de',ldap.SCOPE_SUBTREE,'(objectClass=*)',['cn','mail'])
+# for dn,entry in r:
+#  print 'Processing',repr(dn)
+#  handle_ldap_entry(entry)
 
             self.config = config
         else:
