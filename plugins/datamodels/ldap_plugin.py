@@ -68,6 +68,7 @@ class ldap_plugin(plugin.data_model_plugin):
                 'cn', 'gidNumber', 'homeDirectory', 'uid',
                 'uidNumber', 'gecos', 'hpcDRMadef', 'loginShell'
             ])
+
             for u in users:
                 dn, attrs = u
                 LOG.debug("Found user with DN: " + dn) 
@@ -79,15 +80,20 @@ class ldap_plugin(plugin.data_model_plugin):
                     'home_directory_string': attrs['homeDirectory'],
                     'login_shell_string': attrs['loginShell'],
                     'priority_fairshare_float': '',
-                    'priority_qos_name_array': '',
+                    'priority_qos_name_array': ''
                 }})
 
             groups = ldap_search(self.ldap_dn_group, ['cn', 'hpcDRMshare', 'memberUid'])
+
             for g in groups:
                 dn, attrs = g
                 LOG.debug("Found group with DN: " + dn)
+                model.append({'group_entry': {
+                    'short_name_string': attrs['cn'],
+                    'priority_fairshare_float': attrs['hpcDRMshare'],
+                }})
 
-#        PP.pprint(model)
+        #PP.pprint(model)
         return model
 
 # EOF
