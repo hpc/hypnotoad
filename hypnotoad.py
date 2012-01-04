@@ -9,6 +9,8 @@ import ConfigParser
 from subprocess import Popen, PIPE
 from hypnotoad import hypnolog, plugin
 
+PLUGIN_MODEL_VERSION = 1
+
 def load_hypnotoad_plugin(path, cls):
     """
     Find the first subclass of cls with name in py files located below path
@@ -91,7 +93,7 @@ def send_input_to_output(config):
         def setup_plugins(plugins, out):
             for i in range(len(plugins)):
                 inst = plugins[i]()
-                inst.setup(config)
+                inst.setup(config, PLUGIN_MODEL_VERSION)
                 out.append(inst)
         setup_plugins(datamodel_plugins, loaded_datamodel_plugins)
         setup_plugins(scheduler_plugins, loaded_scheduler_plugins)

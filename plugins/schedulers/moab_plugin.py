@@ -9,7 +9,7 @@ import logging
 LOG = logging.getLogger('root')
 
 class moab_plugin(plugin.scheduler_plugin):
-    def setup(self, config):
+    def setup(self, config, model_version):
         """Called before the plugin is asked to do anything."""
 
         if config.getboolean('Scheduler Options', 'moab_plugin_enabled'):
@@ -17,6 +17,7 @@ class moab_plugin(plugin.scheduler_plugin):
             LOG.debug("moab plugin enabled")
 
             self.config = config
+            self.model_version = model_version
         else:
             self.plugin_enabled = False
 

@@ -16,7 +16,7 @@ class ldap_plugin(plugin.data_model_plugin):
     ldap_url = None
     ldap_ou  = None
 
-    def setup(self, config):
+    def setup(self, config, model_version):
         """Called before the plugin is asked to do anything."""
 
         if config.getboolean('Data Model Options', 'ldap_plugin_enabled'):
@@ -38,7 +38,9 @@ class ldap_plugin(plugin.data_model_plugin):
             LOG.debug("DN for users: " + self.ldap_dn_user)
 
             self.ldap_ctx = ldap.initialize(ldap_url)
+
             self.config = config
+            self.model_version = model_version
         else:
             self.plugin_enabled = False
 
@@ -52,12 +54,40 @@ class ldap_plugin(plugin.data_model_plugin):
     def get_model(self):
         """Look up information in this data model."""
 
+        model = []
+
         if self.plugin_enabled:
             LOG.debug("Got to ldap plugin get_model")
 
-            users = self.ldap_ctx.search_s(self.ldap_dn_user, ldap.SCOPE_SUBTREE, '(cn=*)', ['cn', 'gidNumber', 'homeDirectory', 'uid', 'uidNumber', 'gecos', 'hpcDRMadef', 'loginShell'])
-            groups = self.ldap_ctx.search_s(self.ldap_dn_group, ldap.SCOPE_SUBTREE, '(cn=*)', ['cn', 'hpcDRMshare', 'memberUid'])
+            model.append({'little_lang_entry':{'version':self.model_version}}) 
 
-            PP.pprint(users)
-            PP.pprint(groups)
+            def ldap_search(dn, attrs):
+                return self.ldap_ctx.search_s(dn, ldap.SCOPE_SUBTREE, '(cn=*)', attrs)
 
+            users = ldap_search(self.ldap_dn_user, [
+                'cn', 'gidNumber', 'homeDirectory', 'uid',
+                'uidNumber', 'gecos', 'hpcDRMadef', 'loginShell'
+            ])
+            for u in users:
+                dn, attrs = u
+                LOG.debug("Found user with DN: " + dn) 
+                model.append({'user_entry': {
+                    'short_name_string': attrs['uid'],
+                    'full_name_string': attrs['cn'],
+                    'group_id_integer': attrs['gidNumber'],
+                    'user_id_integer': attrs['uidNumber'],
+                    'home_directory_string': attrs['homeDirectory'],
+                    'login_shell_string': attrs['loginShell'],
+                    'priority_fairshare_float': '',
+                    'priority_qos_name_array': '',
+                }})
+
+            groups = ldap_search(self.ldap_dn_group, ['cn', 'hpcDRMshare', 'memberUid'])
+            for g in groups:
+                dn, attrs = g
+                LOG.debug("Found group with DN: " + dn)
+
+#        PP.pprint(model)
+        return model
+
+# EOF
