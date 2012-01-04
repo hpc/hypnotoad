@@ -43,6 +43,6 @@ class moab_plugin(plugin.scheduler_plugin):
                         name = group['short_name_string']
                         fstarget = group['priority_fairshare_float']
 
-                        LOG.debug('Config entry: GROUPCFG[%s] FSTARGET=%s' % (name, fstarget))
+                        print 'GROUPCFG[%s] FSTARGET=%s' % (name, fstarget)
 
-#            PP.pprint(model)
+# EOF
