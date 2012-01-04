@@ -10,10 +10,6 @@ from hypnotoad import plugin
 LOG = logging.getLogger('root')
 
 class ldap_plugin(plugin.data_model_plugin):
-    ldap_dc  = None
-    ldap_url = None
-    ldap_ou  = None
-
     def setup(self, config, model_version):
         """Called before the plugin is asked to do anything."""
 
