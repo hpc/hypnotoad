@@ -1,12 +1,12 @@
 hypnotoad
 =========
 A utility that aids in transporting user and priority information from one or
-more data sources to a scheduler on a cluster.
+more data sources to various applications on a cluster.
 
 Design Overview
 ---------------
-A user runs hypnotoad specifying a data model type and scheduler output type
-along with options specific to the data model and scheduler type.
+A user runs hypnotoad specifying a data model type and action output type
+along with options specific to the data model and action type.
 
 The data model is currently limited to ldap, but there's no reason why it
 couldn't be replaced or amended with a database server or another storage
@@ -14,16 +14,15 @@ location of user and priority information somewhere. See the documentation
 included with datamodel.py for more information on creating a new data model
 type.
 
-After one or more data models are specified, the data is passed to
-scheduler.py. scheduler.py is an abstraction for outputing to a specific
-scheduler's configuration file format. Currently, only moab is supported. See
-scheduler.py and the moab.py scheduler plugin as an example of how to create
-output for a different scheduler type.
+After one or more data models are specified, the data is passed to action.py.
+action.py is an abstraction for outputing to a specific application based on
+that application's requirements. See action.py and the moab_plugin.py action
+plugin as an example of how to create action plugins for various applications.
 
-Scheduler Little Language
+Hypnotoad Little Language
 -------------------------
 This is a draft of the attributes contained in the data that datamodel plugins
-will send to scheduler plugins. This document is subject to drastically change
+will send to action plugins. This document is subject to drastically change
 as the initial model is implemented. Relationships between bullet points and
 sub-bullet points are simply nested dictionaries with no cycles allowed.
 
@@ -46,7 +45,6 @@ The prefered method for serializing this data format is JSON.
   * cluster_entry                    # specific to the cluster
     * short_code_string              # node prefix (i.e. tu)
     * long_name_string               # long name (i.e. turing)
-    * scheduler_type_string          # type of scheduler (i.e. moab/slurm)
     * location_campus_string         # campus location (i.e. Los Alamos)
     * location_building_string       # building name (i.e. LDCC)
     * location_room_string           # room number (i.e. 205)

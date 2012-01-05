@@ -15,7 +15,7 @@ class data_model_plugin(object):
         """Look up information in this data model."""
         raise NotImplementedError
 
-class scheduler_plugin(object):
+class action_plugin(object):
     def setup(self, config):
         """Called before the plugin is asked to do anything."""
         raise NotImplementedError
@@ -25,5 +25,5 @@ class scheduler_plugin(object):
         raise NotImplementedError
 
     def append_model(self, model):
-        """Return the model information formatted for this scheduler."""
+        """Return the model information formatted for this action."""
         raise NotImplementedError

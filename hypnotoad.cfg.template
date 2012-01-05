@@ -26,9 +26,9 @@ ldap_ou_group:       drm-group
 ldap_ou_user:        user
 
 ; ========================================================================
-; Options for scheduler (output) plugins.
+; Options for action (output) plugins.
 ; ========================================================================
-[Scheduler Options]
+[Action Options]
 
 ; Options for the moab plugin
 moab_plugin_enabled: yes

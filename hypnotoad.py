@@ -71,7 +71,7 @@ def send_input_to_output(config):
     plugin_path = config.get('Basic Options', 'plugins_dir')
 
     loaded_datamodel_plugins = []
-    loaded_scheduler_plugins = []
+    loaded_action_plugins = []
 
     datamodel_outputs = []
 
@@ -80,14 +80,14 @@ def send_input_to_output(config):
         # first, lets find the plugins
         def make_plugins(type): return load_hypnotoad_plugin(plugin_path, type)
         datamodel_plugins = make_plugins(plugin.data_model_plugin)
-        scheduler_plugins = make_plugins(plugin.scheduler_plugin)
+        action_plugins = make_plugins(plugin.action_plugin)
 
         # Now check to see if we have valid plugins.
         def check_plugins(plugins):
             if len(plugins) < 1:
                 LOG.error("It looks like we had trouble loading plugins.")
                 sys.exit(1)
-        map(check_plugins, [datamodel_plugins, scheduler_plugins])
+        map(check_plugins, [datamodel_plugins, action_plugins])
 
         # now, run the setup part of each plugin
         def setup_plugins(plugins, out):
@@ -96,25 +96,25 @@ def send_input_to_output(config):
                 inst.setup(config, PLUGIN_MODEL_VERSION)
                 out.append(inst)
         setup_plugins(datamodel_plugins, loaded_datamodel_plugins)
-        setup_plugins(scheduler_plugins, loaded_scheduler_plugins)
+        setup_plugins(action_plugins, loaded_action_plugins)
 
         LOG.debug("Found " + str(len(loaded_datamodel_plugins)) + " datamodel plugins.")
-        LOG.debug("Found " + str(len(loaded_scheduler_plugins)) + " scheduler plugins.")
+        LOG.debug("Found " + str(len(loaded_action_plugins)) + " action plugins.")
 
         # lets get everything from the data models
         for i in range(len(loaded_datamodel_plugins)):
             datamodel_outputs.append(loaded_datamodel_plugins[i].get_model())
 
-        # now we can send the output of the data models to each scheduler plugin
-        for i in range(len(loaded_scheduler_plugins)):
-            loaded_scheduler_plugins[i].append_model(datamodel_outputs)
+        # now we can send the output of the data models to each action plugin
+        for i in range(len(loaded_action_plugins)):
+            loaded_action_plugins[i].append_model(datamodel_outputs)
 
         # finally, let the plugins cleanup
         for i in range(len(loaded_datamodel_plugins)):
             loaded_datamodel_plugins[i].teardown()
 
-        for i in range(len(loaded_scheduler_plugins)):
-            loaded_scheduler_plugins[i].teardown()
+        for i in range(len(loaded_action_plugins)):
+            loaded_action_plugins[i].teardown()
     except:
         print "Unexpected error:", sys.exc_info()[0]
         raise

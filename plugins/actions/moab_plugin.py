@@ -1,5 +1,5 @@
 #
-# A moab scheduler plugin for hypnotoad.
+# A moab action plugin for hypnotoad.
 #
 
 from hypnotoad import plugin
@@ -10,11 +10,11 @@ import pprint
 LOG = logging.getLogger('root')
 PP = pprint.PrettyPrinter(indent=4)
 
-class moab_plugin(plugin.scheduler_plugin):
+class moab_plugin(plugin.action_plugin):
     def setup(self, config, model_version):
         """Called before the plugin is asked to do anything."""
 
-        if config.getboolean('Scheduler Options', 'moab_plugin_enabled'):
+        if config.getboolean('Action Options', 'moab_plugin_enabled'):
             self.plugin_enabled = True
             LOG.debug("moab plugin enabled")
 
@@ -40,9 +40,17 @@ class moab_plugin(plugin.scheduler_plugin):
                     if 'group_entry' in m.keys():
                         group = m['group_entry']
 
-                        name = group['short_name_string']
-                        fstarget = group['priority_fairshare_float']
+                        name = group['short_name_string'].strip()
+                        fstarget = group['priority_fairshare_float'].strip()
 
-                        print 'GROUPCFG[%s] FSTARGET=%s' % (name, fstarget)
+                        if fstarget:
+                            print 'GROUPCFG[%s] FSTARGET=%s' % (name, fstarget)
+                        else:
+                            LOG.debug('Group "' + name + '" did not have a fairshare value.')
+                    if 'user_entry' in m.keys():
+                        user = m['user_entry']
+
+                        name = user['short_name_string'].strip()
+                        LOG.debug("Found user in model with name: " + name)
 
 # EOF
