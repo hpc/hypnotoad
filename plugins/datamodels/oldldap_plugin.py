@@ -21,16 +21,12 @@ class oldldap_plugin(plugin.data_model_plugin):
             ldap_url = config.get('Data Model Options', 'oldldap_server')
             ldap_dc  = config.get('Data Model Options', 'oldldap_dc')
 
-            ldap_ou_group = config.get('Data Model Options', 'oldldap_ou_group')
-            ldap_ou_user = config.get('Data Model Options', 'oldldap_ou_user')
-
-            self.ldap_dn_user = "ou=" + ldap_ou_user + "," + ldap_dc
-            self.ldap_dn_group = "ou=" + ldap_ou_group + "," + ldap_dc
+            ldap_ou = config.get('Data Model Options', 'oldldap_ou')
+            self.ldap_dn = "ou=" + ldap_ou + "," + ldap_dc
 
             LOG.debug("URL: " + ldap_url)
             LOG.debug("Base DC: " + ldap_dc)
-            LOG.debug("DN for groups: " + self.ldap_dn_group)
-            LOG.debug("DN for users: " + self.ldap_dn_user)
+            LOG.debug("DN: " + self.ldap_dn)
 
             self.ldap_ctx = ldap.initialize(ldap_url)
 
@@ -59,9 +55,9 @@ class oldldap_plugin(plugin.data_model_plugin):
             def ldap_search(dn, attrs):
                 return self.ldap_ctx.search_s(dn, ldap.SCOPE_SUBTREE, '(cn=*)', attrs)
 
-            users = ldap_search(self.ldap_dn_user, [
+            users = ldap_search(self.ldap_dn, [
                 'cn', 'gidNumber', 'homeDirectory', 'uid',
-                'uidNumber', 'gecos', 'hpcDRMadef', 'loginShell'
+                'uidNumber', 'gecos', 'loginShell'
             ])
 
             for u in users:
@@ -74,18 +70,6 @@ class oldldap_plugin(plugin.data_model_plugin):
                     'user_id_integer': attrs['uidNumber'][0],
                     'home_directory_string': attrs['homeDirectory'][0],
                     'login_shell_string': attrs['loginShell'][0],
-                    'priority_fairshare_float': '',
-                    'priority_qos_name_array': ''
-                }})
-
-            groups = ldap_search(self.ldap_dn_group, ['cn', 'hpcDRMshare', 'memberUid'])
-
-            for g in groups:
-                dn, attrs = g
-                LOG.debug("Found group with DN: " + dn)
-                model.append({'group_entry': {
-                    'short_name_string': attrs['cn'][0],
-                    'priority_fairshare_float': attrs['hpcDRMshare'][0],
                 }})
 
         return model
