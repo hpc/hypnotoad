@@ -20,13 +20,14 @@ class oldldap_plugin(plugin.data_model_plugin):
 
             ldap_url = config.get('Data Model Options', 'oldldap_server')
             ldap_dc  = config.get('Data Model Options', 'oldldap_dc')
+            ldap_user_ou = config.get('Data Model Options', 'oldldap_user_ou')
 
-            ldap_ou = config.get('Data Model Options', 'oldldap_ou')
-            self.ldap_dn = "ou=" + ldap_ou + "," + ldap_dc
+            self.use_groups = config.getboolean('Data Model Options', 'oldldap_use_groups')
+            self.ldap_user_dn = "ou=" + ldap_user_ou + "," + ldap_dc
 
             LOG.debug("URL: " + ldap_url)
             LOG.debug("Base DC: " + ldap_dc)
-            LOG.debug("DN: " + self.ldap_dn)
+            LOG.debug("Users DN: " + self.ldap_user_dn)
 
             self.ldap_ctx = ldap.initialize(ldap_url)
 
@@ -55,10 +56,17 @@ class oldldap_plugin(plugin.data_model_plugin):
             def ldap_search(dn, attrs):
                 return self.ldap_ctx.search_s(dn, ldap.SCOPE_SUBTREE, '(cn=*)', attrs)
 
-            users = ldap_search(self.ldap_dn, [
+            users = ldap_search(self.ldap_user_dn, [
                 'cn', 'gidNumber', 'homeDirectory', 'uid',
                 'uidNumber', 'gecos', 'loginShell'
             ])
+
+            if self.use_groups:
+                #
+                # TODO:
+                # Go though each group and remove users that are not included in a group.
+                #
+                raise NotImplementedError
 
             for u in users:
                 dn, attrs = u

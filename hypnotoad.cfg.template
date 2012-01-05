@@ -18,20 +18,21 @@ plugins_dir:                  plugins
 [Data Model Options]
 
 ; Options for the ldap plugin
-ldap_plugin_enabled:          yes
+ldap_plugin_enabled:          no
 ldap_server:                  ldap://bear.lanl.gov
 ldap_timeout:                 30
 ldap_dc:                      DC=rry,DC=hpc,DC=lanl,DC=gov
 ldap_ou_group:                drm-group
 ldap_ou_user:                 user
 
-; Options for the OLD ldap schema plugin
-ldap_plugin_enabled:          no
-ldap_server:                  ldap://hpcldap.lanl.gov
-ldap_timeout:                 30
-ldap_dc:                      DC=rry,DC=hpc,DC=lanl,DC=gov
-ldap_ou_group:                drm-group
-ldap_ou_user:                 user
+; Options for the OLD ldap plugin
+oldldap_plugin_enabled:       yes
+oldldap_server:               ldap://hpcldap.lanl.gov
+oldldap_timeout:              30
+oldldap_dc:                   DC=hpc,DC=lanl,DC=gov
+oldldap_user_ou:              nfs.lanl.gov
+oldldap_group_ou:             lsf-group-rry
+oldldap_use_groups:           no  ; collect group data (expensive)
 
 ; ========================================================================
 ; Options for action (output) plugins.
