@@ -3,7 +3,6 @@
 #
 
 from hypnotoad import plugin
-import ldap
 import logging
 import pprint
 

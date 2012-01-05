@@ -8,9 +8,9 @@
 ; Basic options for hypnotoad.
 ; ========================================================================
 [Basic Options]
-cache_dir:           /tmp/hypnotoad
-log_file_dir:        %(cache_dir)s/logs
-plugins_dir:         plugins
+cache_dir:                    /tmp/hypnotoad
+log_file_dir:                 %(cache_dir)s/logs
+plugins_dir:                  plugins
 
 ; ========================================================================
 ; Options for data model (input) plugins.
@@ -18,12 +18,20 @@ plugins_dir:         plugins
 [Data Model Options]
 
 ; Options for the ldap plugin
-ldap_plugin_enabled: yes
-ldap_server:         ldap://bear.lanl.gov
-ldap_timeout:        30
-ldap_dc:             DC=rry,DC=hpc,DC=lanl,DC=gov
-ldap_ou_group:       drm-group
-ldap_ou_user:        user
+ldap_plugin_enabled:          yes
+ldap_server:                  ldap://bear.lanl.gov
+ldap_timeout:                 30
+ldap_dc:                      DC=rry,DC=hpc,DC=lanl,DC=gov
+ldap_ou_group:                drm-group
+ldap_ou_user:                 user
+
+; Options for the OLD ldap schema plugin
+ldap_plugin_enabled:          no
+ldap_server:                  ldap://hpcldap.lanl.gov
+ldap_timeout:                 30
+ldap_dc:                      DC=rry,DC=hpc,DC=lanl,DC=gov
+ldap_ou_group:                drm-group
+ldap_ou_user:                 user
 
 ; ========================================================================
 ; Options for action (output) plugins.
@@ -31,6 +39,13 @@ ldap_ou_user:        user
 [Action Options]
 
 ; Options for the moab plugin
-moab_plugin_enabled: yes
-moab_case_sensitive: no   ; for compatibility with various resource managers.
-moab_output_stdout:  yes  ; stdout is necessary for moab's IDCFG.
+moab_plugin_enabled:          yes
+moab_case_sensitive:          no   ; for compatibility
+
+; Options for the panlinks plugin
+panlinks_plugin_enabled:      no
+panlinks_skip_bad_realms:     no   ; skip realms that time out
+panlinks_max_diff_count:      10   ; max diff from the previous run
+panlinks_new_dir_perms:       700  ; permissions for new directories
+panlinks_max_skip_bad_vols:   3    ; max number of bad volumes to skip
+panlinks_max_skip_bad_realms: 1    ; max number of bad realms to skip
