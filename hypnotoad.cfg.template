@@ -8,7 +8,7 @@
 ; Basic options for hypnotoad.
 ; ========================================================================
 [Basic Options]
-cache_dir:                    /tmp/hypnotoad
+state_dir:                    /tmp/hypnotoad
 log_file_dir:                 %(cache_dir)s/logs
 plugins_dir:                  plugins
 
