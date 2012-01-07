@@ -5,14 +5,13 @@ data sources to various applications on a cluster using a standard interface.
 
 Design Overview
 ---------------
-A user runs hypnotoad specifying a data model type and action output type
+A user runs hypnotoad specifying a data model input type and action output type
 along with options specific to the data model and action type.
 
 The data model is currently limited to ldap, but there is no reason why it
-could not be replaced or amended with a database server or another storage
-location of user and priority information somewhere. See the documentation
-included with datamodel.py for more information on creating a new data model
-type.
+could not be replaced or amended with a database server or another source of
+directory information. See the documentation included with plugin.py and
+current implemented plugins for more information on creating a new data model.
 
 After one or more data models are specified, the data is passed to
 action_plugin. action_plugin is an abstraction for outputing to a specific
