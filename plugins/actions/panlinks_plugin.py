@@ -45,4 +45,9 @@ class panlinks_plugin(plugin.action_plugin):
 #                for m in plug_model:
 #                    if 'user_entry' in m.keys():
 
+    def ensure_dir(name):
+        dir = os.path.dirname(name)
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+
 # EOF
