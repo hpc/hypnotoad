@@ -8,7 +8,7 @@ class data_model_plugin(object):
         raise NotImplementedError
  
     def teardown(self):
-        """Called to allow the plugin to free anything."""
+        """Called to allow the plugin a clean shutdown."""
         raise NotImplementedError
  
     def get_model(self):
@@ -21,9 +21,9 @@ class action_plugin(object):
         raise NotImplementedError
  
     def teardown(self):
-        """Called to allow the plugin to free anything."""
+        """Called to allow the plugin a clean shutdown."""
         raise NotImplementedError
 
     def append_model(self, model):
-        """Return the model information formatted for this action."""
+        """Handle the model information for this action."""
         raise NotImplementedError
