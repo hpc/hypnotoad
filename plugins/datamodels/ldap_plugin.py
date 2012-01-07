@@ -66,9 +66,11 @@ class ldap_plugin(plugin.data_model_plugin):
                 'uidNumber', 'gecos', 'hpcDRMadef', 'loginShell'
             ])
 
+            LOG.debug("Found " + str(len(users)) + " users.")
+
             for u in users:
                 dn, attrs = u
-                LOG.debug("Found user with DN: " + dn) 
+
                 model.append({'user_entry': {
                     'short_name_string': attrs['uid'][0],
                     'full_name_string': attrs['cn'][0],
