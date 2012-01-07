@@ -1,23 +1,24 @@
 hypnotoad
 =========
-A utility that aids in transporting user and priority information from one or
-more data sources to various applications on a cluster.
+A utility that aids in transporting directory information from one or more
+data sources to various applications on a cluster using a standard interface.
 
 Design Overview
 ---------------
 A user runs hypnotoad specifying a data model type and action output type
 along with options specific to the data model and action type.
 
-The data model is currently limited to ldap, but there's no reason why it
-couldn't be replaced or amended with a database server or another storage
+The data model is currently limited to ldap, but there is no reason why it
+could not be replaced or amended with a database server or another storage
 location of user and priority information somewhere. See the documentation
 included with datamodel.py for more information on creating a new data model
 type.
 
-After one or more data models are specified, the data is passed to action.py.
-action.py is an abstraction for outputing to a specific application based on
-that application's requirements. See action.py and the moab_plugin.py action
-plugin as an example of how to create action plugins for various applications.
+After one or more data models are specified, the data is passed to
+action_plugin. action_plugin is an abstraction for outputing to a specific
+application based on the application requirements. See plugin.py and the
+moab_plugin.py action plugin as an example of how to create action plugins for
+various applications.
 
 Hypnotoad Little Language
 -------------------------
@@ -75,4 +76,6 @@ The prefered method for serializing this data format is JSON.
     * priority_fairshare_float       # fairshare priority target
     * priority_qos_name_array        # qos available to this user
 
-# EOF
+Credits
+-------
+See the included AUTHORS file for a list of contributors.
