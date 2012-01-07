@@ -47,7 +47,7 @@ moab_case_sensitive:          no   ; for compatibility
 panlinks_plugin_enabled:      yes
 panlinks_skip_bad_realms:     no   ; skip realms that time out
 panlinks_max_diff_count:      10   ; max diff from the previous run
-panlinks_new_dir_perms:       700  ; permissions for new directories
+panlinks_new_dir_perms:       0700 ; permissions for new directories
 panlinks_max_skip_bad_vols:   3    ; max number of bad volumes to skip
 panlinks_max_skip_bad_realms: 1    ; max number of bad realms to skip
 
