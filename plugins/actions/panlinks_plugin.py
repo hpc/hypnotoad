@@ -17,6 +17,13 @@ class panlinks_plugin(plugin.action_plugin):
             self.plugin_enabled = True
             LOG.debug("Panasas Links plugin enabled")
 
+            self.new_dir_perms = config.getint('Action Options', 'panlinks_new_dir_perms')
+
+            self.skip_bad_realms = config.getboolean('Action Options', 'panlinks_skip_bad_realms')
+            self.max_diff_count = config.getint('Action Options', 'panlinks_max_diff_count')
+            self.max_skip_bad_vols = config.getint('Action Options', 'panlinks_max_skip_bad_vols')
+            self.max_skip_bad_realms = config.getint('Action Options', 'panlinks_max_skip_bad_realms')
+
             self.config = config
             self.model_version = model_version
         else:

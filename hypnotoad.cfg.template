@@ -40,11 +40,11 @@ oldldap_use_groups:           no  ; collect group data (expensive)
 [Action Options]
 
 ; Options for the Moab scheduler plugin.
-moab_plugin_enabled:          yes
+moab_plugin_enabled:          no
 moab_case_sensitive:          no   ; for compatibility
 
 ; Options for the Panasas links plugin.
-panlinks_plugin_enabled:      no
+panlinks_plugin_enabled:      yes
 panlinks_skip_bad_realms:     no   ; skip realms that time out
 panlinks_max_diff_count:      10   ; max diff from the previous run
 panlinks_new_dir_perms:       700  ; permissions for new directories
