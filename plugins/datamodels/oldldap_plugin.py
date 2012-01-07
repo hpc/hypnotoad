@@ -22,6 +22,8 @@ class oldldap_plugin(plugin.data_model_plugin):
             ldap_dc  = config.get('Data Model Options', 'oldldap_dc')
             ldap_user_ou = config.get('Data Model Options', 'oldldap_user_ou')
 
+            ldap_timeout = config.getfloat('Data Model Options', 'oldldap_timeout')
+
             self.use_groups = config.getboolean('Data Model Options', 'oldldap_use_groups')
             self.ldap_user_dn = "ou=" + ldap_user_ou + "," + ldap_dc
 
@@ -30,6 +32,7 @@ class oldldap_plugin(plugin.data_model_plugin):
             LOG.debug("Users DN: " + self.ldap_user_dn)
 
             self.ldap_ctx = ldap.initialize(ldap_url)
+            self.ldap_ctx.set_option(ldap.OPT_NETWORK_TIMEOUT, ldap_timeout)
 
             self.config = config
             self.model_version = model_version
