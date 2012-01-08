@@ -39,15 +39,16 @@ class panlinks_plugin(plugin.action_plugin):
             LOG.debug("Got to Panasas Links plugin teardown")
 
     def cache_check(self, models):
-        """If a cache exists, check differences. Otherwise, create a cache."""
+        """If a cache exists, check differences and update. Otherwise, create"""
+        """a cache."""
         cache_file_name = self.state_dir + "/" + "model.json"
         self.ensure_dir(self.state_dir)
 
         if os.path.isfile(cache_file_name):
             # TODO compare old cache and current model
             raise NotImplementedError
-        else:
-            self.save_as_json(models, cache_file_name)
+
+        self.save_as_json(models, cache_file_name)
 
     def save_as_json(self, obj, dest):
         """Serializes obj to json and saves to a file at dest."""
