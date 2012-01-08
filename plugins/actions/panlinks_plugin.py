@@ -43,13 +43,13 @@ class panlinks_plugin(plugin.action_plugin):
         if self.plugin_enabled:
             LOG.debug("Got to Panasas Links plugin append_model.")
 
-            self.cache_check(models)
+            self.cache_check_and_update(models)
 
 #            for plug_model in models:
 #                for m in plug_model:
 #                    if 'user_entry' in m.keys():
 
-    def cache_check(self, models):
+    def cache_check_and_update(self, models):
         """
         If a cache exists, check differences and update the cache if the
         differences are not too great. Otherwise quietly create a cache if one
@@ -59,19 +59,28 @@ class panlinks_plugin(plugin.action_plugin):
         self.ensure_dir(self.state_dir)
 
         if os.path.isfile(cache_file_name):
-            # TODO Compare old cache and current model.
-            # TODO Only overwrite cache if comparison passes.
-            raise NotImplementedError
+            old_model = json_to_models(cache_file_name)
+            model_diff_count = count_model_diff(old_model, models)
+
+            if model_diff_count > self.max_diff_count:
+                LOG.error("Model too different with " + model_diff_count + " changes.")
+                raise UserWarning
+            else:
+                # Overwrite the old cache.
+                self.save_as_json(models, cache_file_name)
         else:
             # Create a new cache if one does not exist.
             self.save_as_json(models, cache_file_name)
 
-    def save_as_json(self, obj, dest):
+    def save_as_json(self, obj, dest_file_name):
         """Serializes obj to json and saves to a file at dest."""
         j = json.dumps(obj)
-        f = open(dest, 'w')
+        f = open(dest_file_name, 'w')
         f.write(j + "\n")
         f.close()
+
+    def json_to_models(self, json_file_name):
+        raise NotImplementedError
 
     def ensure_dir(self, path):
         """Create directory at path if it doesn't exist."""
