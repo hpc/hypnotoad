@@ -38,6 +38,17 @@ class panlinks_plugin(plugin.action_plugin):
         if self.plugin_enabled:
             LOG.debug("Got to Panasas Links plugin teardown")
 
+    def append_model(self, models):
+        """Handled a model appended to this output."""
+        if self.plugin_enabled:
+            LOG.debug("Got to Panasas Links plugin append_model.")
+
+            self.cache_check(models)
+
+#            for plug_model in models:
+#                for m in plug_model:
+#                    if 'user_entry' in m.keys():
+
     def cache_check(self, models):
         """
         If a cache exists, check differences and update the cache if the
@@ -70,16 +81,5 @@ class panlinks_plugin(plugin.action_plugin):
             if exc.errno == errno.EEXIST:
                 pass
             else: raise
-
-    def append_model(self, models):
-        """Handled a model appended to this output."""
-        if self.plugin_enabled:
-            LOG.debug("Got to Panasas Links plugin append_model.")
-
-            self.cache_check(models)
-
-#            for plug_model in models:
-#                for m in plug_model:
-#                    if 'user_entry' in m.keys():
 
 # EOF
