@@ -54,7 +54,7 @@ class panlinks_plugin(plugin.action_plugin):
         users_with_existing_directories = get_users_with_existing_directories(mounted_panfs_list, all_usernames)
 
         if self.validate_existing_directories(all_usernames, users_with_existing_directories):
-            for user in self.find_users_without_directories(all_usernames, users_with_existing_directories):
+            for user in all_usernames - users_with_existing_directories:
                 #user_dir_path = ???
                 #self.ensure_dir(user_dir_path)
                 raise NotImplementedError
