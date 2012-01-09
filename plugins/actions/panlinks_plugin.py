@@ -42,12 +42,30 @@ class panlinks_plugin(plugin.action_plugin):
         """Handled a model appended to this output."""
         if self.plugin_enabled:
             LOG.debug("Got to Panasas Links plugin append_model.")
+            self.create_links(models)
 
-            self.cache_check_and_update(models)
+    def create_links(self, models):
+        mounted_panfs_list = get_current_panfs_mounts()
 
-#            for plug_model in models:
-#                for m in plug_model:
-#                    if 'user_entry' in m.keys():
+        all_usernames = get_users_from_hypnotoad_models(models)
+        users_with_existing_directories = get_users_with_existing_directories()
+
+        self.cache_check_and_update(models)
+        if self.validate_existing_directories(all_usernames, users_with_existing_directories):
+            for user in self.find_users_without_directories(all_usernames, users_with_existing_directories):
+                self.create_directory_for_new_user(user)
+            self.create_symlinks_for_valid_users(all_usernames, users_with_existing_directories)
+
+    def get_userlist_from_hypnotoad_models(self, models):
+        """ Merge all hypnotoad models into a single list of user names."""
+        userlist = []
+
+        for plug_model in models:
+            for m in plug_model:
+                if 'user_entry' in m.keys():
+                    userlist.append(group['short_name_string'].strip())
+
+        return userlist
 
     def cache_check_and_update(self, models):
         """
@@ -91,10 +109,10 @@ class panlinks_plugin(plugin.action_plugin):
                 pass
             else: raise
 
-    def get_current_panfs_mounts():
+    def get_current_panfs_mounts(self):
         """
         Check if al panfs mounts specified in fstab are mounted. Display a
-        warning if now. Return mounted panfs mount points.
+        warning if not. Return mounted panfs mount points.
         """
 
         def tab_check(f):
