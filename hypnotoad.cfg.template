@@ -43,6 +43,9 @@ oldldap_use_groups:            no  ; collect group data (expensive)
 moab_plugin_enabled:           no
 moab_case_sensitive:           no   ; for compatibility
 
+; Options for the Slurm scheduler plugin.
+slurm_plugin_enabled:          no
+
 ; Options for the Panasas links plugin.
 panlinks_plugin_enabled:       yes
 panlinks_mount_point:          /panfs ; the root mount point for PanFS
@@ -53,8 +56,5 @@ panlinks_max_diff_count:       10     ; max diff from the previous run
 panlinks_new_dir_perms:        0700   ; permissions for new directories
 panlinks_max_skip_bad_vols:    3      ; max number of bad volumes to skip
 panlinks_max_skip_bad_realms:  1      ; max number of bad realms to skip
-
-; Options for the Slurm scheduler plugin.
-slurm_plugin_enabled:          no
 
 ; ================================ EOF ===================================
