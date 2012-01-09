@@ -55,13 +55,17 @@ class panlinks_plugin(plugin.action_plugin):
         all_usernames = self.collect_users_from_models(models)
 
         mounted_panfs_list = get_current_panfs_mounts()
-        users_with_existing_dirs, where_user_is = get_user_original_directory_info(mounted_panfs_list, all_usernames)
 
-        if len(set(all_usernames) - set(users_with_existing_dirs)) > self.max_diff_count:
-            LOG.debug("Too many missing users. We have " + len(all_usernames) + " total users, but only " + len(users_with_existing_dirs) + " have existing directories.")
+        users_with_orig_dirs, where_user_orig_dir_is = get_user_original_directory_info(mounted_panfs_list, all_usernames)
+        users_without_orig_dirs = set(all_usernames) - set(users_with_existing_orig_dirs)
+
+        if len(users_without_orig_dirs)) > self.max_diff_count:
+            LOG.debug("Too many missing users. We have " + len(all_usernames) + " total users, but only " + len(users_with_orig_dirs) + " have existing directories.")
             raise UserError
 
-        for user in all_usernames - users_with_existing_dirs:
+        LOG.debug("Users without directories: " + users_without_orig_dirs)
+
+        for user in users_without_orig_dirs:
             user_loc = where_user_is[user]
             original_user_dir = self.root_mount_point + "/" + user_loc.realm + "/" + user_loc.volume + "/" user
 
