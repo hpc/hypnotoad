@@ -48,17 +48,7 @@ class panlinks_plugin(plugin.action_plugin):
         """Check everything and create the links."""
 
         self.cache_check_and_update(models)
-
-        def collect_users_from_models(models):
-            """ Merge all hypnotoad models into a single list of user names."""
-            userlist = []
-            for plug_model in models:
-                for m in plug_model:
-                    if 'user_entry' in m.keys():
-                        userlist.append(group['short_name_string'].strip())
-            return userlist
-
-        all_usernames = collect_users_from_models(models)
+        all_usernames = self.collect_users_from_models(models)
 
         mounted_panfs_list = get_current_panfs_mounts()
         users_with_existing_directories = get_users_with_existing_directories(mounted_panfs_list)
@@ -69,6 +59,16 @@ class panlinks_plugin(plugin.action_plugin):
                 #self.ensure_dir(user_dir_path)
                 raise NotImplementedError
             self.create_symlinks_for_valid_users(all_usernames, users_with_existing_directories)
+
+    def collect_users_from_models(self, models):
+        """ Merge all hypnotoad models into a single list of user names."""
+        userlist = []
+        for plug_model in models:
+            for m in plug_model:
+                if 'user_entry' in m.keys():
+                    user = m['user_entry']
+                    userlist.append(user['short_name_string'].strip())
+        return userlist
 
     def cache_check_and_update(self, models):
         """
@@ -90,8 +90,10 @@ class panlinks_plugin(plugin.action_plugin):
             raise NotImplementedError
 
         if os.path.isfile(cache_file_name):
-            old_model = json_to_models(cache_file_name)
-            model_diff_count = count_model_diff(old_model, models)
+            old_models = json_to_models(cache_file_name)
+
+            old_userlist, new_userlist = map(self.collect_users_from_models, [old_models, models])
+            model_diff_count = return len(list(set(old_userlist) - set(new_userlist)))
 
             if model_diff_count > self.max_diff_count:
                 LOG.error("Model too different with " + model_diff_count + " changes.")
