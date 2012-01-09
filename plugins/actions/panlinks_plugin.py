@@ -150,6 +150,7 @@ class panlinks_plugin(plugin.action_plugin):
             LOG.debug('All detected PanFS mounts are mounted.')
         else:
             LOG.warn('There are panfs mounts that are NOT mounted.')
+            raise UserWarning
         return mtab_mounts
 
 # EOF
