@@ -46,24 +46,24 @@ class panlinks_plugin(plugin.action_plugin):
         """Handled a model appended to this output."""
         if self.plugin_enabled:
             LOG.debug("Got to Panasas Links plugin append_model.")
-            self.create_links(models)
 
-    def create_links(self, models):
-        """Check everything and create the links."""
+            self.cache_check_and_update(models)
+            all_usernames = self.collect_users_from_models(models)
 
-        self.cache_check_and_update(models)
-        all_usernames = self.collect_users_from_models(models)
+            self.create_user_original_links(all_usernames)
+            self.create_user_symlinks(all_usernames)
 
+    def create_user_original_links(self, all_usernames):
+        """Check everything and create original links."""
         mounted_panfs_list = get_current_panfs_mounts()
 
         users_with_orig_dirs, where_user_orig_dir_is = get_user_original_directory_info(mounted_panfs_list, all_usernames)
         users_without_orig_dirs = set(all_usernames) - set(users_with_existing_orig_dirs)
 
-        if len(users_without_orig_dirs)) > self.max_diff_count:
+        LOG.debug("Users without directories: " + users_without_orig_dirs)
+        if len(users_without_orig_dirs) > self.max_diff_count:
             LOG.debug("Too many missing users. We have " + len(all_usernames) + " total users, but only " + len(users_with_orig_dirs) + " have existing directories.")
             raise UserError
-
-        LOG.debug("Users without directories: " + users_without_orig_dirs)
 
         for user in users_without_orig_dirs:
             user_loc = where_user_is[user]
@@ -85,6 +85,34 @@ class panlinks_plugin(plugin.action_plugin):
                     user = m['user_entry']
                     userlist.append(user['short_name_string'].strip())
         return userlist
+
+    def get_volume_with_least_users(self, realm):
+        """
+        Determines the volume in a realm with the least number of users and
+        returns the name.
+        """
+        volume_with_least_users = None
+        current_least_count = None
+        realm_path = self.root_mount_point + "/" + realm
+
+        if not os.path.isdir(realm_path):
+            LOG.debug('The specified realm path "' + realm_path + '" does not exist.')
+            raise UserError
+
+        for volume_dir in os.listdir(realm_path):
+            if not os.path.isdir(volume_dir):
+                LOG.debug('Found a volume that is not a directory (' + volume_dir + ').')
+                raise UserError
+            users_in_this_volume = len(os.listdir(volume_dir))
+            if current_least_count is None or users_in_this_volume < current_least_count:
+                volume_with_least_users = volume_dir
+                current_top_count = users_in_this_volume
+
+        if volume_with_least_users is None:
+            LOG.debug("Could not find a volume with the least number of users.")
+            raise UserError
+
+        return volume_with_least_users
 
     def get_user_original_directory_info(self, mounts, all_users):
         """
