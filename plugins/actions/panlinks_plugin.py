@@ -68,9 +68,11 @@ class panlinks_plugin(plugin.action_plugin):
             LOG.debug("Too many missing users. We have " + len(all_usernames) + " total users, but only " + len(users_with_orig_dirs) + " have existing directories.")
             raise UserError
 
+        """Create intial directories and symlinks for new users."""
         for user in users_without_orig_dirs:
             create_initial_directories_for(user, map(os.path.basename, mounted_pafs_list))
 
+        """Just verify symlinks for users with existing directories."""
         for u in users_with_orig_dirs:
             user_realm = where_user_orig_dir_is[u].realm
             user_volume = where_user_orig_dir_is[u].volume
