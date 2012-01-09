@@ -58,7 +58,7 @@ class panlinks_plugin(plugin.action_plugin):
         users_with_existing_dirs, where_user_is = get_user_original_directory_info(mounted_panfs_list, all_usernames)
 
         if len(set(all_usernames) - set(users_with_existing_dirs)) > self.max_diff_count:
-            LOG.debug("Too many missing users. We have " + len(all_usernames) + " total users, but only " + len(users_with_existing_dirs) + " have directories.")
+            LOG.debug("Too many missing users. We have " + len(all_usernames) + " total users, but only " + len(users_with_existing_dirs) + " have existing directories.")
             raise UserError
 
         for user in all_usernames - users_with_existing_dirs:
