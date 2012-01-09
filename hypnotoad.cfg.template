@@ -54,5 +54,8 @@ panlinks_max_diff_count:       10     ; max diff from the previous run
 panlinks_new_dir_perms:        0700   ; permissions for new directories
 panlinks_max_skip_bad_vols:    3      ; max number of bad volumes to skip
 panlinks_max_skip_bad_realms:  1      ; max number of bad realms to skip
+panlinks_pristine_dir_create:  yes    ; should we create a pristine directory
+panlinks_pristine_dir_mount:   /usr/projects ; the root mount point for pristine
+panlinks_pristine_dir_path:    systems/links ; the subdir for pristine
 
 ; ================================ EOF ===================================
