@@ -23,6 +23,10 @@ class panlinks_plugin(plugin.action_plugin):
             self.state_dir = config.get('Basic Options', 'state_dir') + "/panlinks"
             self.new_dir_perms = config.getint('Action Options', 'panlinks_new_dir_perms')
 
+            self.root_mount_point = config.get('Action Options', 'panlinks_mount_point')
+            self.copy_nfs_root = config.get('Action Options', 'panlinks_copy_nfs_root')
+            self.copy_nfs_dir = config.get('Action Options', 'panlinks_copy_nfs_dir')
+
             self.skip_bad_realms = config.getboolean('Action Options', 'panlinks_skip_bad_realms')
             self.max_diff_count = config.getint('Action Options', 'panlinks_max_diff_count')
             self.max_skip_bad_vols = config.getint('Action Options', 'panlinks_max_skip_bad_vols')
@@ -51,13 +55,14 @@ class panlinks_plugin(plugin.action_plugin):
         all_usernames = self.collect_users_from_models(models)
 
         mounted_panfs_list = get_current_panfs_mounts()
-        users_with_existing_directories = get_users_with_existing_directories(mounted_panfs_list, all_usernames)
+        users_with_existing_dirs, volume_user_is_on = get_users_with_existing_directories(mounted_panfs_list, all_usernames)
 
         if self.validate_existing_directories(all_usernames, users_with_existing_directories):
             for user in all_usernames - users_with_existing_directories:
-                #user_dir_path = ???
+                #user_dir_path = self.root_mount_point + ???
+
+                LOG.debug('Creating link "' + user_dir_path + '" for user "' + user)
                 #self.ensure_dir(user_dir_path)
-                raise NotImplementedError
             self.create_symlinks_for_valid_users(all_usernames, users_with_existing_directories)
 
     def collect_users_from_models(self, models):
@@ -70,18 +75,31 @@ class panlinks_plugin(plugin.action_plugin):
                     userlist.append(user['short_name_string'].strip())
         return userlist
 
-    def get_users_with_existing_directories(self, mounts, userlist):
-        """Find valid users that already have directories created."""
-        dirlist = []
-        for mount in mounts:
-            for file in os.listdir(mount):
-                """
-                FIXME: handle vols.
-                """
-                if os.path.isdir(file):
-                    dirlist.append(file)
-        intersection = userlist & dirlist
-        return intersection
+    def get_users_with_existing_directories(self, mounts, all_users):
+        """
+        Find valid users that already have directories created, as well as
+        what volume users have directories on.
+        """
+        users_on_vols = {}
+        users_with_dirs = []
+
+        for mount_dir in mounts:
+            if not os.path.isdir(mount_dir):
+                LOG.debug('Mount directory "' + mount_dir + '" is invalid.')
+                raise UserError
+            for volume_dir in os.listdir(mount_dir):
+                if not os.path.isdir(volume_dir):
+                    LOG.debug('Volume directory "' + volume_dir + '" is invalid.')
+                    raise UserError
+                for user_dir in os.listdir(volume_dir):
+                    if not os.path.isdir(user_dir):
+                        LOG.debug('User directory "' + user_dir + '" is invalid.')
+                        raise UserError
+                    users_on_vols[user_dir] = volume_dir
+                    users_with_dirs.append(user_dir)
+
+        intersection = all_users & users_with_dirs
+        return intersection, users_on_vols
 
     def cache_check_and_update(self, models):
         """
