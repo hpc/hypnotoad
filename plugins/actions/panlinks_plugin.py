@@ -91,4 +91,30 @@ class panlinks_plugin(plugin.action_plugin):
                 pass
             else: raise
 
+    def get_current_panfs_mounts():
+        """
+        Check if al panfs mounts specified in fstab are mounted. Display a
+        warning if now. Return mounted panfs mount points.
+        """
+
+        def tab_check(f):
+            m = []
+            for l in f.readlines():
+                i = l.find('#')
+                if i != -1:
+                    l = l[:i]
+                    l = l.rstrip()
+                if l.find('panfs') != -1:
+                    m.append(l.split()[1])
+            return m
+
+        fstab_mounts, mtab_mounts = map(tab_check, [open('/etc/fstab'), open('/etc/mtab')])
+
+        if(fstab_mounts & mtab_mounts) == len(fstab_mounts):
+            LOG.debug('All detected PanFS mounts are mounted.')
+        else:
+            LOG.warn('There are panfs mounts that are NOT mounted.')
+
+        return mtab_mounts
+
 # EOF
