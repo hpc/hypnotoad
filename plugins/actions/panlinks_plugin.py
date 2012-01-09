@@ -45,6 +45,7 @@ class panlinks_plugin(plugin.action_plugin):
             self.create_links(models)
 
     def create_links(self, models):
+        """Check everything and create the links."""
         mounted_panfs_list = get_current_panfs_mounts()
 
         all_usernames = get_users_from_hypnotoad_models(models)
