@@ -87,7 +87,8 @@ class panlinks_plugin(plugin.action_plugin):
             f.close()
 
         def json_to_models(json_file_name):
-            raise NotImplementedError
+            f = open(json_file_name)
+            return json.load(f)
 
         if os.path.isfile(cache_file_name):
             old_models = json_to_models(cache_file_name)
