@@ -25,7 +25,7 @@ ldap_dc:                       DC=rry,DC=hpc,DC=lanl,DC=gov
 ldap_ou_group:                 drm-group
 ldap_ou_user:                  user
 
-; Options for the old LDAP HPC LDAP plugin.
+; Options for the old LANL HPC LDAP plugin.
 oldldap_plugin_enabled:        yes
 oldldap_server:                ldap://hpcldap.lanl.gov
 oldldap_timeout:               30

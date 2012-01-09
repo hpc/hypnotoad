@@ -60,12 +60,10 @@ class panlinks_plugin(plugin.action_plugin):
     def get_userlist_from_hypnotoad_models(self, models):
         """ Merge all hypnotoad models into a single list of user names."""
         userlist = []
-
         for plug_model in models:
             for m in plug_model:
                 if 'user_entry' in m.keys():
                     userlist.append(group['short_name_string'].strip())
-
         return userlist
 
     def cache_check_and_update(self, models):
@@ -112,10 +110,9 @@ class panlinks_plugin(plugin.action_plugin):
 
     def get_current_panfs_mounts(self):
         """
-        Check if al panfs mounts specified in fstab are mounted. Display a
+        Check if all panfs mounts specified in fstab are mounted. Display a
         warning if not. Return mounted panfs mount points.
         """
-
         def tab_check(f):
             m = []
             for l in f.readlines():
@@ -128,12 +125,10 @@ class panlinks_plugin(plugin.action_plugin):
             return m
 
         fstab_mounts, mtab_mounts = map(tab_check, [open('/etc/fstab'), open('/etc/mtab')])
-
         if(fstab_mounts & mtab_mounts) == len(fstab_mounts):
             LOG.debug('All detected PanFS mounts are mounted.')
         else:
             LOG.warn('There are panfs mounts that are NOT mounted.')
-
         return mtab_mounts
 
 # EOF
