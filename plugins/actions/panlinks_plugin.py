@@ -59,7 +59,7 @@ class panlinks_plugin(plugin.action_plugin):
         self.ensure_dir(self.state_dir)
 
         if os.path.isfile(cache_file_name):
-            old_model = json_to_models(cache_file_name)
+            old_model = self.json_to_models(cache_file_name)
             model_diff_count = count_model_diff(old_model, models)
 
             if model_diff_count > self.max_diff_count:
