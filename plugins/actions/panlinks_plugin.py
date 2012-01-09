@@ -76,8 +76,6 @@ class panlinks_plugin(plugin.action_plugin):
             user_volume = where_user_orig_dir_is[u].volume
             self.ensure_symlink_for_user(u, user_realm, user_volume)
 
-        self.create_symlinks_for_valid_users(all_usernames, users_with_existing_dirs)
-
     def create_initial_directories_for(self, username, realms):
         """Create a new directory on each realm for the specified user."""
         for realm in realms:
@@ -87,6 +85,7 @@ class panlinks_plugin(plugin.action_plugin):
             LOG.debug('Creating initial user directory "' + user_dir_path + '" for user "' + username)
             self.ensure_dir(user_dir_path)
 
+            LOG.debug('Creating new symlink for user "' + username '" on realm "' + realm + '".')
             self.ensure_symlink_for_user(username, realm, vol_name)
 
     def ensure_symlink_for_user(self, username, realm_name, volume_name):
