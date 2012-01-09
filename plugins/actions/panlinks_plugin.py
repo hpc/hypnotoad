@@ -46,25 +46,29 @@ class panlinks_plugin(plugin.action_plugin):
 
     def create_links(self, models):
         """Check everything and create the links."""
-        mounted_panfs_list = get_current_panfs_mounts()
-
-        all_usernames = get_users_from_hypnotoad_models(models)
-        users_with_existing_directories = get_users_with_existing_directories()
 
         self.cache_check_and_update(models)
+
+        def collect_users_from_models(models):
+            """ Merge all hypnotoad models into a single list of user names."""
+            userlist = []
+            for plug_model in models:
+                for m in plug_model:
+                    if 'user_entry' in m.keys():
+                        userlist.append(group['short_name_string'].strip())
+            return userlist
+
+        all_usernames = collect_users_from_models(models)
+
+        mounted_panfs_list = get_current_panfs_mounts()
+        users_with_existing_directories = get_users_with_existing_directories(mounted_panfs_list)
+
         if self.validate_existing_directories(all_usernames, users_with_existing_directories):
             for user in self.find_users_without_directories(all_usernames, users_with_existing_directories):
-                self.create_directory_for_new_user(user)
+                #user_dir_path = ???
+                #self.ensure_dir(user_dir_path)
+                raise NotImplementedError
             self.create_symlinks_for_valid_users(all_usernames, users_with_existing_directories)
-
-    def get_userlist_from_hypnotoad_models(self, models):
-        """ Merge all hypnotoad models into a single list of user names."""
-        userlist = []
-        for plug_model in models:
-            for m in plug_model:
-                if 'user_entry' in m.keys():
-                    userlist.append(group['short_name_string'].strip())
-        return userlist
 
     def cache_check_and_update(self, models):
         """
