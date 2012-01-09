@@ -110,7 +110,8 @@ class panlinks_plugin(plugin.action_plugin):
         except OSError as exc:
             if exc.errno == errno.EEXIST:
                 pass
-            else: raise
+            else:
+                raise
 
     def get_current_panfs_mounts(self):
         """
