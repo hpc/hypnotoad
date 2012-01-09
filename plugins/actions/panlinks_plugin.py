@@ -55,15 +55,22 @@ class panlinks_plugin(plugin.action_plugin):
         all_usernames = self.collect_users_from_models(models)
 
         mounted_panfs_list = get_current_panfs_mounts()
-        users_with_existing_dirs, volume_user_is_on = get_users_with_existing_directories(mounted_panfs_list, all_usernames)
+        users_with_existing_dirs, where_user_is = get_user_original_directory_info(mounted_panfs_list, all_usernames)
 
-        if self.validate_existing_directories(all_usernames, users_with_existing_directories):
-            for user in all_usernames - users_with_existing_directories:
-                #user_dir_path = self.root_mount_point + ???
+        if len(set(all_usernames) - set(users_with_existing_dirs)) > self.max_diff_count:
+            LOG.debug("Too many missing users. We have " + len(all_usernames) + " total users, but only " + len(users_with_existing_dirs) + " have directories.")
+            raise UserError
 
-                LOG.debug('Creating link "' + user_dir_path + '" for user "' + user)
-                #self.ensure_dir(user_dir_path)
-            self.create_symlinks_for_valid_users(all_usernames, users_with_existing_directories)
+        for user in all_usernames - users_with_existing_dirs:
+            user_loc = where_user_is[user]
+            original_user_dir = self.root_mount_point + "/" + user_loc.realm + "/" + user_loc.volume + "/" user
+
+            #user_dir_path = self.root_mount_point + ???
+
+            LOG.debug('Creating link "' + user_dir_path + '" for user "' + user)
+            #self.ensure_dir(user_dir_path)
+
+        self.create_symlinks_for_valid_users(all_usernames, users_with_existing_dirs)
 
     def collect_users_from_models(self, models):
         """ Merge all hypnotoad models into a single list of user names."""
@@ -75,12 +82,12 @@ class panlinks_plugin(plugin.action_plugin):
                     userlist.append(user['short_name_string'].strip())
         return userlist
 
-    def get_users_with_existing_directories(self, mounts, all_users):
+    def get_user_original_directory_info(self, mounts, all_users):
         """
-        Find valid users that already have directories created, as well as
+        Find valid users which already have directories created, as well as
         what volume users have directories on.
         """
-        users_on_vols = {}
+        users_on_realm_vols = {}
         users_with_dirs = []
 
         for mount_dir in mounts:
@@ -95,11 +102,14 @@ class panlinks_plugin(plugin.action_plugin):
                     if not os.path.isdir(user_dir):
                         LOG.debug('User directory "' + user_dir + '" is invalid.')
                         raise UserError
-                    users_on_vols[user_dir] = volume_dir
+                    users_on_realm_vols[user_dir] = {
+                        "volume": volume_dir,
+                        "realm": os.path.basename(mount_dir)
+                    }
                     users_with_dirs.append(user_dir)
 
         intersection = all_users & users_with_dirs
-        return intersection, users_on_vols
+        return intersection, users_on_realm_vols
 
     def cache_check_and_update(self, models):
         """
