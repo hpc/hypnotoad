@@ -227,6 +227,7 @@ class panlinks_plugin(plugin.action_plugin):
         """Create directory at path if it doesn't exist."""
         try:
             os.makedirs(path)
+            os.chmod(path, int(self.new_dir_perms, 8))
         except OSError as exc:
             if exc.errno == errno.EEXIST:
                 pass
