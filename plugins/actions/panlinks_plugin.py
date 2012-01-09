@@ -75,8 +75,18 @@ class panlinks_plugin(plugin.action_plugin):
         cache_file_name = self.state_dir + "/" + "model.json"
         self.ensure_dir(self.state_dir)
 
+        def save_as_json(obj, dest_file_name):
+            """Serializes obj to json and saves to a file at dest."""
+            j = json.dumps(obj)
+            f = open(dest_file_name, 'w')
+            f.write(j + "\n")
+            f.close()
+
+        def json_to_models(json_file_name):
+            raise NotImplementedError
+
         if os.path.isfile(cache_file_name):
-            old_model = self.json_to_models(cache_file_name)
+            old_model = json_to_models(cache_file_name)
             model_diff_count = count_model_diff(old_model, models)
 
             if model_diff_count > self.max_diff_count:
@@ -84,20 +94,10 @@ class panlinks_plugin(plugin.action_plugin):
                 raise UserWarning
             else:
                 # Overwrite the old cache.
-                self.save_as_json(models, cache_file_name)
+                save_as_json(models, cache_file_name)
         else:
             # Create a new cache if one does not exist.
-            self.save_as_json(models, cache_file_name)
-
-    def save_as_json(self, obj, dest_file_name):
-        """Serializes obj to json and saves to a file at dest."""
-        j = json.dumps(obj)
-        f = open(dest_file_name, 'w')
-        f.write(j + "\n")
-        f.close()
-
-    def json_to_models(self, json_file_name):
-        raise NotImplementedError
+            save_as_json(models, cache_file_name)
 
     def ensure_dir(self, path):
         """Create directory at path if it doesn't exist."""
