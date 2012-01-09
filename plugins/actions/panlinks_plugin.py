@@ -75,10 +75,13 @@ class panlinks_plugin(plugin.action_plugin):
         dirlist = []
         for mount in mounts:
             for file in os.listdir(mount):
+                """
+                FIXME: handle vols.
+                """
                 if os.path.isdir(file):
                     dirlist.append(file)
-        union = userlist & dirlist
-        return union
+        intersection = userlist & dirlist
+        return intersection
 
     def cache_check_and_update(self, models):
         """
