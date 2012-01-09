@@ -32,6 +32,10 @@ class panlinks_plugin(plugin.action_plugin):
             self.max_skip_bad_vols = config.getint('Action Options', 'panlinks_max_skip_bad_vols')
             self.max_skip_bad_realms = config.getint('Action Options', 'panlinks_max_skip_bad_realms')
 
+            self.create_pristine = config.getboolean('Action Options', 'panlinks_pristine_dir_create')
+            self.pristine_mount_dir = config.get('Action Options', 'panlinks_pristine_mount_dir')
+            self.pristine_subdir = config.get('Action Options', 'panlinks_pristine_subdir')
+
             self.config = config
             self.model_version = model_version
         else:
@@ -70,13 +74,26 @@ class panlinks_plugin(plugin.action_plugin):
 
         """Create intial directories and symlinks for new users."""
         for user in users_without_orig_dirs:
-            create_initial_directories_for(user, map(os.path.basename, mounted_pafs_list))
+            create_initial_directories_for(user, map(os.path.basename, mounted_panfs_list))
 
         """Just verify symlinks for users with existing directories."""
         for u in users_with_orig_dirs:
             user_realm = where_user_orig_dir_is[u].realm
             user_volume = where_user_orig_dir_is[u].volume
-            self.ensure_symlink_for_user(u, user_realm, user_volume)
+            self.ensure_symlink_for_user("/", u, user_realm, user_volume)
+
+        """Go back and create a pristine directory if necessary."""
+        if self.create_pristine:
+            pristine_users, pristine_where = get_user_original_directory_info(mounted_panfs_list, all_usernames)
+            for u in pristine_users:
+                realm = where[u].realm
+                volume = where[u].volume
+                if os.path.ismount(self.pristine_mount_dir):
+                    pristine_path = self.pristine_mount_dir + "/" + self.pristine_subdir
+                    self.ensure_symlink_for_user(pristine_path, u, realm, volume)
+                else:
+                    LOG.debug("Pristine base path was not mounted.")
+                    raise UserError
 
     def create_initial_directories_for(self, username, realms):
         """Create a new directory on each realm for the specified user."""
@@ -90,11 +107,11 @@ class panlinks_plugin(plugin.action_plugin):
             LOG.debug('Creating new symlink for user "' + username '" on realm "' + realm + '".')
             self.ensure_symlink_for_user(username, realm, vol_name)
 
-    def ensure_symlink_for_user(self, username, realm_name, volume_name):
+    def ensure_symlink_for_user(self, username, realm_name, volume_name, base):
         """
         Ensure that a symlink exists for the user in the specified location.
         """
-        user_symlink_dst_path = "/" + realm_name + "/" + username
+        user_symlink_dst_path = base + realm_name + "/" + username
         user_symlink_src_path = self.root_mount_point + "/" + realm_name + "/" + volume_name + "/" username
         
         if not os.path.exists(user_symlink_path):
