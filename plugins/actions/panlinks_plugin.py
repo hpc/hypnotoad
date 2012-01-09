@@ -230,7 +230,7 @@ class panlinks_plugin(plugin.action_plugin):
                     l = l.rstrip()
                 if l.find('panfs') != -1:
                     m.append(l.split()[1])
-            return m
+            return set(m)
 
         fstab_mounts, mtab_mounts = map(tab_check, [open('/etc/fstab'), open('/etc/mtab')])
         if(fstab_mounts & mtab_mounts) == len(fstab_mounts):
