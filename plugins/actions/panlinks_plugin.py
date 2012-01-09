@@ -1,5 +1,5 @@
 #
-# A action plugin for hypnotoad to create panasas links.
+# An action plugin for hypnotoad to create panasas links.
 #
 
 import os
