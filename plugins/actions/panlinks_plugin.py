@@ -194,7 +194,7 @@ class panlinks_plugin(plugin.action_plugin):
             old_models = json_to_models(cache_file_name)
 
             old_userlist, new_userlist = map(self.collect_users_from_models, [old_models, models])
-            model_diff_count = return len(list(set(old_userlist) - set(new_userlist)))
+            model_diff_count = len(list(set(old_userlist) - set(new_userlist)))
 
             if model_diff_count > self.max_diff_count:
                 LOG.error("Model too different with " + model_diff_count + " changes.")
