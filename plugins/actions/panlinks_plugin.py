@@ -48,13 +48,16 @@ class panlinks_plugin(plugin.action_plugin):
             LOG.debug("Got to Panasas Links plugin append_model.")
 
             self.cache_check_and_update(models)
+
             all_usernames = self.collect_users_from_models(models)
+            self.ensure_user_directories_exist(all_usernames)
 
-            self.create_user_original_links(all_usernames)
-            self.create_user_symlinks(all_usernames)
-
-    def create_user_original_links(self, all_usernames):
-        """Check everything and create original links."""
+    def ensure_user_directories_exist(self, all_usernames):
+        """
+        Check to make sure each user has a directory located on a single
+        volume on each realm. Then, ensure that a symlink exists for each
+        realm.
+        """
         mounted_panfs_list = get_current_panfs_mounts()
 
         users_with_orig_dirs, where_user_orig_dir_is = get_user_original_directory_info(mounted_panfs_list, all_usernames)
@@ -66,15 +69,38 @@ class panlinks_plugin(plugin.action_plugin):
             raise UserError
 
         for user in users_without_orig_dirs:
-            user_loc = where_user_is[user]
-            original_user_dir = self.root_mount_point + "/" + user_loc.realm + "/" + user_loc.volume + "/" user
+            create_initial_directories_for(user, map(os.path.basename, mounted_pafs_list))
 
-            #user_dir_path = self.root_mount_point + ???
-
-            LOG.debug('Creating link "' + user_dir_path + '" for user "' + user)
-            #self.ensure_dir(user_dir_path)
+        for u in users_with_orig_dirs:
+            user_realm = where_user_orig_dir_is[u].realm
+            user_volume = where_user_orig_dir_is[u].volume
+            self.ensure_symlink_for_user(u, user_realm, user_volume)
 
         self.create_symlinks_for_valid_users(all_usernames, users_with_existing_dirs)
+
+    def create_initial_directories_for(self, username, realms):
+        """Create a new directory on each realm for the specified user."""
+        for realm in realms:
+            vol_name = self.get_volume_with_least_users(realm)
+            user_dir_path = self.root_mount_point + "/" + realm + "/" + vol_name + "/" username
+
+            LOG.debug('Creating initial user directory "' + user_dir_path + '" for user "' + username)
+            self.ensure_dir(user_dir_path)
+
+            self.ensure_symlink_for_user(username, realm, vol_name)
+
+    def ensure_symlink_for_user(self, username, realm_name, volume_name):
+        """
+        Ensure that a symlink exists for the user in the specified location.
+        """
+        user_symlink_dst_path = "/" + realm_name + "/" + username
+        user_symlink_src_path = self.root_mount_point + "/" + realm_name + "/" + volume_name + "/" username
+        
+        if not os.path.exists(user_symlink_path):
+            LOG.debug('Symlink missing at "' + user_symlink_path + '". Attempting to create.')
+            os.symlink(user_symlink_src_path, user_symlink_dst_path)
+            if not os.path.islink(user_symlink_dst_path):
+                LOG.debug('Failed to create a symlink at: "' + user_symlink_dst_path + '".')
 
     def collect_users_from_models(self, models):
         """ Merge all hypnotoad models into a single list of user names."""
