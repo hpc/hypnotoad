@@ -51,7 +51,7 @@ class panlinks_plugin(plugin.action_plugin):
         all_usernames = self.collect_users_from_models(models)
 
         mounted_panfs_list = get_current_panfs_mounts()
-        users_with_existing_directories = get_users_with_existing_directories(mounted_panfs_list)
+        users_with_existing_directories = get_users_with_existing_directories(mounted_panfs_list, all_usernames)
 
         if self.validate_existing_directories(all_usernames, users_with_existing_directories):
             for user in self.find_users_without_directories(all_usernames, users_with_existing_directories):
@@ -69,6 +69,16 @@ class panlinks_plugin(plugin.action_plugin):
                     user = m['user_entry']
                     userlist.append(user['short_name_string'].strip())
         return userlist
+
+    def get_users_with_existing_directories(self, mounts, userlist):
+        """Find valid users that already have directories created."""
+        dirlist = []
+        for mount in mounts:
+            for file in os.listdir(mount):
+                if os.path.isdir(file):
+                    dirlist.append(file)
+        union = userlist & dirlist
+        return union
 
     def cache_check_and_update(self, models):
         """
