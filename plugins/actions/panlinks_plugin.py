@@ -62,7 +62,7 @@ class panlinks_plugin(plugin.action_plugin):
         """
         mounted_panfs_list = self.get_current_panfs_mounts()
 
-        users_with_orig_dirs, where_user_orig_dir_is = get_user_original_directory_info(mounted_panfs_list, all_usernames)
+        users_with_orig_dirs, where_user_orig_dir_is = self.get_user_original_directory_info(mounted_panfs_list, all_usernames)
         users_without_orig_dirs = set(all_usernames) - set(users_with_existing_orig_dirs)
 
         LOG.debug("Users without directories: " + users_without_orig_dirs)
@@ -82,7 +82,7 @@ class panlinks_plugin(plugin.action_plugin):
 
         """Go back and create a pristine directory if necessary."""
         if self.create_pristine:
-            pristine_users, pristine_where = get_user_original_directory_info(mounted_panfs_list, all_usernames)
+            pristine_users, pristine_where = self.get_user_original_directory_info(mounted_panfs_list, all_usernames)
             for u in pristine_users:
                 realm = where[u].realm
                 volume = where[u].volume
