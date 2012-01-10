@@ -169,12 +169,16 @@ class panlinks_plugin(plugin.action_plugin):
                 LOG.debug('Mount directory "' + mount_dir + '" is invalid.')
                 raise UserError
             for volume_dir in os.listdir(mount_dir):
-                if not os.path.isdir(volume_dir):
-                    LOG.debug('Volume directory "' + volume_dir + '" is invalid.')
+                if volume_dir.startswith("Lost+Found"):
+                    continue
+                volume_path = mount_dir + "/" + volume_dir
+                if not os.path.isdir(volume_path):
+                    LOG.debug('Volume directory "' + volume_path + '" is invalid.')
                     raise UserError
-                for user_dir in os.listdir(volume_dir):
-                    if not os.path.isdir(user_dir):
-                        LOG.debug('User directory "' + user_dir + '" is invalid.')
+                for user_dir in os.listdir(volume_path):
+                    user_pth = volume_path + "/" + user_dir
+                    if not os.path.isdir(user_path):
+                        LOG.debug('User directory "' + user_path + '" is invalid.')
                         raise UserError
                     users_on_realm_vols[user_dir] = {
                         "volume": volume_dir,
