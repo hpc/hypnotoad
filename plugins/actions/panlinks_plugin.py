@@ -99,7 +99,7 @@ class panlinks_plugin(plugin.action_plugin):
         """Create a new directory on each realm for the specified user."""
         for realm in realms:
             vol_name = self.get_volume_with_least_users(realm)
-            user_dir_path = self.root_mount_point + "/" + realm + "/" + vol_name + "/" username
+            user_dir_path = self.root_mount_point + "/" + realm + "/" + vol_name + "/" + username
 
             LOG.debug('Creating initial user directory "' + user_dir_path + '" for user "' + username)
             self.ensure_dir(user_dir_path)
