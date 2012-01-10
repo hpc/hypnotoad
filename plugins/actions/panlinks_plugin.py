@@ -112,7 +112,7 @@ class panlinks_plugin(plugin.action_plugin):
         Ensure that a symlink exists for the user in the specified location.
         """
         user_symlink_dst_path = base + realm_name + "/" + username
-        user_symlink_src_path = self.root_mount_point + "/" + realm_name + "/" + volume_name + "/" username
+        user_symlink_src_path = self.root_mount_point + "/" + realm_name + "/" + volume_name + "/" + username
         
         if not os.path.exists(user_symlink_path):
             LOG.debug('Symlink missing at "' + user_symlink_path + '". Attempting to create.')
