@@ -21,7 +21,7 @@ class panlinks_plugin(plugin.action_plugin):
             LOG.debug("Panasas Links plugin enabled")
 
             self.state_dir = config.get('Basic Options', 'state_dir') + "/panlinks"
-            self.new_dir_perms = config.getint('Action Options', 'panlinks_new_dir_perms')
+            self.new_dir_perms = config.get('Action Options', 'panlinks_new_dir_perms')
 
             self.root_mount_point = config.get('Action Options', 'panlinks_mount_point')
 
