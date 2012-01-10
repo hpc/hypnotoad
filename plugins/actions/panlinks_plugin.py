@@ -24,8 +24,6 @@ class panlinks_plugin(plugin.action_plugin):
             self.new_dir_perms = config.getint('Action Options', 'panlinks_new_dir_perms')
 
             self.root_mount_point = config.get('Action Options', 'panlinks_mount_point')
-            self.copy_nfs_root = config.get('Action Options', 'panlinks_copy_nfs_root')
-            self.copy_nfs_dir = config.get('Action Options', 'panlinks_copy_nfs_dir')
 
             self.skip_bad_realms = config.getboolean('Action Options', 'panlinks_skip_bad_realms')
             self.max_diff_count = config.getint('Action Options', 'panlinks_max_diff_count')
