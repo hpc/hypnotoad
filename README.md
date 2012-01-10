@@ -3,6 +3,10 @@ hypnotoad
 A utility that aids in transporting directory information from one or more
 data sources to various applications on a cluster using a standard interface.
 
+Requirements
+------------
+Python 2.6 or newer with ldap support.
+
 Design Overview
 ---------------
 A user runs hypnotoad specifying a data model input type and action output type
