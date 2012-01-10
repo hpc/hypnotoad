@@ -60,7 +60,7 @@ class panlinks_plugin(plugin.action_plugin):
         volume on each realm. Then, ensure that a symlink exists for each
         realm.
         """
-        mounted_panfs_list = get_current_panfs_mounts()
+        mounted_panfs_list = self.get_current_panfs_mounts()
 
         users_with_orig_dirs, where_user_orig_dir_is = get_user_original_directory_info(mounted_panfs_list, all_usernames)
         users_without_orig_dirs = set(all_usernames) - set(users_with_existing_orig_dirs)
@@ -249,7 +249,7 @@ class panlinks_plugin(plugin.action_plugin):
             return set(m)
 
         fstab_mounts, mtab_mounts = map(tab_check, [open('/etc/fstab'), open('/etc/mtab')])
-        if(fstab_mounts & mtab_mounts) == len(fstab_mounts):
+        if len(fstab_mounts & mtab_mounts) == len(fstab_mounts):
             LOG.debug('All detected PanFS mounts are mounted.')
         else:
             LOG.warn('There are panfs mounts that are NOT mounted.')
