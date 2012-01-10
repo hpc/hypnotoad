@@ -104,7 +104,7 @@ class panlinks_plugin(plugin.action_plugin):
             LOG.debug('Creating initial user directory "' + user_dir_path + '" for user "' + username)
             self.ensure_dir(user_dir_path)
 
-            LOG.debug('Creating new symlink for user "' + username '" on realm "' + realm + '".')
+            LOG.debug('Creating new symlink for user "' + username + '" on realm "' + realm + '".')
             self.ensure_symlink_for_user(username, realm, vol_name)
 
     def ensure_symlink_for_user(self, username, realm_name, volume_name, base):
