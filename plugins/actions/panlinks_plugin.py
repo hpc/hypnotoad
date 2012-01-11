@@ -280,23 +280,23 @@ class panlinks_plugin(plugin.action_plugin):
         LOG.debug("Using realms: " + str(mtab_mounts))
         return mtab_mounts
 
-    def makedirs(path):
+    def makedirs(self, path):
         return self.timeout_command(['mkdir', '-p', path], self.command_timeout)
 
-    def chmod(path, perms):
+    def chmod(self, path, perms):
         return self.timeout_command(['chmod', perms, path], self.command_timeout)
 
-    def symlink(src, dest):
+    def symlink(self, src, dest):
         return self.timeout_command(['ln', '-s', src, dest], self.command_timeout)
 
-    def isdir(path):
+    def isdir(self, path):
         cmd_output = timeout_command(['/usr/bin/file', '-b', path], self.command_timeout)
         if "directory" in cmd_output[0]:
             return True
         else:
             return False
 
-    def timeout_command(command, timeout):
+    def timeout_command(self, command, timeout):
         """
         Call a shell command and either return its output or kill it. Continue
         if the process doesn't get killed cleanly (for D-state).
