@@ -320,10 +320,14 @@ class panlinks_plugin(plugin.action_plugin):
             return True
 
     def listdir(self, path):
-        return self.timeput_command['find', path, '-maxdepth', '1', '-printf', '"%f\\n"', self.command_timeout)
+        return self.timeput_command['find', path, '-maxdepth', '1', '-printf', '"%f\\n"'], self.command_timeout)
 
     def ismount(self, path):
-        # TODO
+        cmd_output = self.timeput_command['mountpoint', path], self.command_timeout)
+        if "is a mountpoint" in cmd_output[0]:
+            return True
+        else:
+            return False
 
     def timeout_command(self, command, timeout):
         """
