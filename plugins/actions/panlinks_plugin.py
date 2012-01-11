@@ -123,7 +123,7 @@ class panlinks_plugin(plugin.action_plugin):
         
         if not os.path.exists(user_symlink_dst_path):
             LOG.debug('Creating missing symlink from "' + user_symlink_src_path + '" to "' + user_symlink_dst_path)
-            os.symlink(user_symlink_src_path, user_symlink_dst_path)
+            self.symlink(user_symlink_src_path, user_symlink_dst_path)
             if not os.path.islink(user_symlink_dst_path):
                 LOG.debug('Failed to create a symlink at: "' + user_symlink_dst_path + '".')
 
@@ -146,12 +146,12 @@ class panlinks_plugin(plugin.action_plugin):
         current_least_count = None
         realm_path = self.root_mount_point + "/" + realm
 
-        if not os.path.isdir(realm_path):
+        if not self.isdir(realm_path):
             LOG.debug('The specified realm path "' + realm_path + '" does not exist.')
             raise UserError
 
         for volume_dir in os.listdir(realm_path):
-            if not os.path.isdir(volume_dir):
+            if not self.isdir(volume_dir):
                 LOG.debug('Found a volume that is not a directory (' + volume_dir + ').')
                 raise UserError
             users_in_this_volume = len(os.listdir(volume_dir))
@@ -175,19 +175,19 @@ class panlinks_plugin(plugin.action_plugin):
         users_with_dirs = []
 
         for mount_dir in mounts:
-            if not os.path.isdir(mount_dir):
+            if not self.isdir(mount_dir):
                 LOG.debug('Mount directory "' + mount_dir + '" is invalid.')
                 raise UserError
             for volume_dir in os.listdir(mount_dir):
                 if not volume_dir.startswith("vol"):
                     continue
                 volume_path = mount_dir + "/" + volume_dir
-                if not os.path.isdir(volume_path):
+                if not self.isdir(volume_path):
                     LOG.debug('Volume directory "' + volume_path + '" is invalid.')
                     raise UserError
                 for user_dir in os.listdir(volume_path):
                     user_pth = volume_path + "/" + user_dir
-                    if not os.path.isdir(user_path):
+                    if not self.isdir(user_path):
                         LOG.debug('User directory "' + user_path + '" is invalid.')
                         raise UserError
                     users_on_realm_vols[user_dir] = {
@@ -295,6 +295,9 @@ class panlinks_plugin(plugin.action_plugin):
             return True
         else:
             return False
+
+    def path_exists(self, path):
+        # TODO
 
     def timeout_command(self, command, timeout):
         """
