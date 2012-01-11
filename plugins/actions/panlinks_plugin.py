@@ -13,6 +13,7 @@ import shlex
 import subprocess
 
 from hypnotoad import plugin
+from hypnotoad import hypnofs
 
 LOG = logging.getLogger('root')
 PP = pprint.PrettyPrinter(indent=4)
@@ -95,7 +96,7 @@ class panlinks_plugin(plugin.action_plugin):
             for u in pristine_users:
                 realm = pristine_where[u]['realm']
                 volume = pristine_where[u]['volume']
-                if self.ismount(self.pristine_mount_dir):
+                if hypnofs.ismount(self.pristine_mount_dir):
                     pristine_path = self.pristine_mount_dir + "/" + self.pristine_subdir
                     self.ensure_symlink_for_user(u, realm, volume, pristine_path)
                 else:
@@ -121,10 +122,10 @@ class panlinks_plugin(plugin.action_plugin):
         user_symlink_dst_path = base + "/" + realm_name + "/" + username
         user_symlink_src_path = self.root_mount_point + "/" + realm_name + "/" + volume_name + "/" + username
         
-        if not self.path_exists(user_symlink_dst_path):
+        if not hypnofs.path_exists(user_symlink_dst_path):
             LOG.debug('Creating missing symlink from "' + user_symlink_src_path + '" to "' + user_symlink_dst_path)
-            self.symlink(user_symlink_src_path, user_symlink_dst_path)
-            if not self.islink(user_symlink_dst_path):
+            hypnofs.symlink(user_symlink_src_path, user_symlink_dst_path)
+            if not hypnofs.islink(user_symlink_dst_path):
                 LOG.debug('Failed to create a symlink at: "' + user_symlink_dst_path + '".')
 
     def collect_users_from_models(self, models):
@@ -146,15 +147,15 @@ class panlinks_plugin(plugin.action_plugin):
         current_least_count = None
         realm_path = self.root_mount_point + "/" + realm
 
-        if not self.isdir(realm_path):
+        if not hypnofs.isdir(realm_path):
             LOG.debug('The specified realm path "' + realm_path + '" does not exist.')
             raise UserError
 
-        for volume_dir in self.listdir(realm_path):
-            if not self.isdir(volume_dir):
+        for volume_dir in hypnofs.listdir(realm_path):
+            if not hypnofs.isdir(volume_dir):
                 LOG.debug('Found a volume that is not a directory (' + volume_dir + ').')
                 raise UserError
-            users_in_this_volume = len(self.listdir(volume_dir))
+            users_in_this_volume = len(hypnofs.listdir(volume_dir))
             if current_least_count is None or users_in_this_volume < current_least_count:
                 volume_with_least_users = volume_dir
                 current_top_count = users_in_this_volume
@@ -175,19 +176,19 @@ class panlinks_plugin(plugin.action_plugin):
         users_with_dirs = []
 
         for mount_dir in mounts:
-            if not self.isdir(mount_dir):
+            if not hypnofs.isdir(mount_dir):
                 LOG.debug('Mount directory "' + mount_dir + '" is invalid.')
                 raise UserError
-            for volume_dir in self.listdir(mount_dir):
+            for volume_dir in hypnofs.listdir(mount_dir):
                 if not volume_dir.startswith("vol"):
                     continue
                 volume_path = mount_dir + "/" + volume_dir
-                if not self.isdir(volume_path):
+                if not hypnofs.isdir(volume_path):
                     LOG.debug('Volume directory "' + volume_path + '" is invalid.')
                     raise UserError
-                for user_dir in self.listdir(volume_path):
+                for user_dir in hypnofs.listdir(volume_path):
                     user_pth = volume_path + "/" + user_dir
-                    if not self.isdir(user_path):
+                    if not hypnofs.isdir(user_path):
                         LOG.debug('User directory "' + user_path + '" is invalid.')
                         raise UserError
                     users_on_realm_vols[user_dir] = {
@@ -241,8 +242,8 @@ class panlinks_plugin(plugin.action_plugin):
         """Create directory at path if it doesn't exist."""
         LOG.debug("Ensure dir at '" + path + "' with perms '" + str(int(self.new_dir_perms, 8)) + "'.")
         try:
-            self.makedirs(path)
-            self.chmod(path, int(self.new_dir_perms, 8))
+            hypnofs.makedirs(path)
+            hypnofs.chmod(path, int(self.new_dir_perms, 8))
         except OSError, exc:
             if exc.errno == errno.EEXIST:
                 pass
@@ -279,73 +280,5 @@ class panlinks_plugin(plugin.action_plugin):
 
         LOG.debug("Using realms: " + str(mtab_mounts))
         return mtab_mounts
-
-    def makedirs(self, path):
-        return self.timeout_command(['mkdir', '-p', path])
-
-    def chmod(self, path, perms):
-        return self.timeout_command(['chmod', perms, path])
-
-    def symlink(self, src, dest):
-        return self.timeout_command(['ln', '-s', src, dest])
-
-    def isdir(self, path):
-        cmd_output = self.timeout_command(['file', '-b', path])
-        if "directory" in cmd_output[0]:
-            return True
-        else:
-            return False
-
-    def isfile(self, path):
-        cmd_output = self.timeout_command(['file', '-b', path])
-        if "directory" in cmd_output[0]:
-            return False
-        elif "ERROR" in cmd_output[0]:
-            return False
-        else:
-            return True
-
-    def islink(self, path):
-        cmd_output = self.timeout_command(['file', '-b', path])
-        if "symbolic link" in cmd_output[0]:
-            return True
-        else:
-            return False
-
-    def path_exists(self, path):
-        cmd_output = self.timeout_command(['file', '-b', path])
-        if "ERROR" in cmd_output[0]:
-            return False
-        else:
-            return True
-
-    def listdir(self, path):
-        return self.timeput_command['find', path, '-maxdepth', '1', '-printf', '"%f\\n"'])
-
-    def ismount(self, path):
-        cmd_output = self.timeput_command['mountpoint', path], self.command_timeout)
-        if "is a mountpoint" in cmd_output[0]:
-            return True
-        else:
-            return False
-
-    def timeout_command(self, command, timeout=self.command_timeout):
-        """
-        Call a shell command and either return its output or kill it. Continue
-        if the process doesn't get killed cleanly (for D-state).
-        """
-        start = datetime.datetime.now()
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-        while process.poll() is None:
-            time.sleep(0.1)
-            now = datetime.datetime.now()
-
-            if (now - start).seconds > timeout:
-                os.kill(process.pid, signal.SIGKILL)
-                os.waitpid(-1, os.WNOHANG)
-                raise IOError(errno.EWOULDBLOCK)
-
-        return process.stdout.readlines()
 
 # EOF
