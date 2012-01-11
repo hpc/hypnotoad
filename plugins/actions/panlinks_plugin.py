@@ -2,11 +2,15 @@
 # An action plugin for hypnotoad to create panasas links.
 #
 
-import os
+
+import datetime
 import errno
-import logging
 import json
+import logging
+import os
 import pprint
+import shlex
+import subprocess
 
 from hypnotoad import plugin
 
@@ -29,6 +33,11 @@ class panlinks_plugin(plugin.action_plugin):
             self.max_diff_count = config.getint('Action Options', 'panlinks_max_diff_count')
             self.max_skip_bad_vols = config.getint('Action Options', 'panlinks_max_skip_bad_vols')
             self.max_skip_bad_realms = config.getint('Action Options', 'panlinks_max_skip_bad_realms')
+            self.command_timeout = config.getint('Action Options', 'panlinks_subprocess_timeout')
+
+            self.realms_to_skip = shlex.shlex(config.get('Action Options', 'panlinks_skip_realms'))
+            self.realms_to_skip_whitespace += ','
+            self.realms_to_skip.whitespace_split = True
 
             self.create_pristine = config.getboolean('Action Options', 'panlinks_pristine_dir_create')
             self.pristine_mount_dir = config.get('Action Options', 'panlinks_pristine_mount_dir')
@@ -63,32 +72,32 @@ class panlinks_plugin(plugin.action_plugin):
         mounted_panfs_list = self.get_current_panfs_mounts()
 
         users_with_orig_dirs, where_user_orig_dir_is = self.get_user_original_directory_info(mounted_panfs_list, all_usernames)
-        users_without_orig_dirs = set(all_usernames) - set(users_with_existing_orig_dirs)
+        users_without_orig_dirs = set(all_usernames) - set(users_with_orig_dirs)
 
-        LOG.debug("Users without directories: " + users_without_orig_dirs)
+        LOG.debug("Users without directories: " + str(users_without_orig_dirs))
         if len(users_without_orig_dirs) > self.max_diff_count:
             LOG.debug("Too many missing users. We have " + len(all_usernames) + " total users, but only " + len(users_with_orig_dirs) + " have existing directories.")
             raise UserError
 
         """Create intial directories and symlinks for new users."""
         for user in users_without_orig_dirs:
-            create_initial_directories_for(user, map(os.path.basename, mounted_panfs_list))
+            create_initial_directories_for(user, mounted_panfs_list)
 
         """Just verify symlinks for users with existing directories."""
         for u in users_with_orig_dirs:
-            user_realm = where_user_orig_dir_is[u].realm
-            user_volume = where_user_orig_dir_is[u].volume
-            self.ensure_symlink_for_user("/", u, user_realm, user_volume)
+            user_realm = where_user_orig_dir_is[u]['realm']
+            user_volume = where_user_orig_dir_is[u]['volume']
+            self.ensure_symlink_for_user(u, user_realm, user_volume, "/")
 
         """Go back and create a pristine directory if necessary."""
         if self.create_pristine:
             pristine_users, pristine_where = self.get_user_original_directory_info(mounted_panfs_list, all_usernames)
             for u in pristine_users:
-                realm = where[u].realm
-                volume = where[u].volume
+                realm = pristine_where[u]['realm']
+                volume = pristine_where[u]['volume']
                 if os.path.ismount(self.pristine_mount_dir):
                     pristine_path = self.pristine_mount_dir + "/" + self.pristine_subdir
-                    self.ensure_symlink_for_user(pristine_path, u, realm, volume)
+                    self.ensure_symlink_for_user(u, realm, volume, pristine_path)
                 else:
                     LOG.debug("Pristine base path was not mounted.")
                     raise UserError
@@ -103,17 +112,17 @@ class panlinks_plugin(plugin.action_plugin):
             self.ensure_dir(user_dir_path)
 
             LOG.debug('Creating new symlink for user "' + username + '" on realm "' + realm + '".')
-            self.ensure_symlink_for_user(username, realm, vol_name)
+            self.ensure_symlink_for_user(username, realm, vol_name, self.root_mount_point)
 
     def ensure_symlink_for_user(self, username, realm_name, volume_name, base):
         """
         Ensure that a symlink exists for the user in the specified location.
         """
-        user_symlink_dst_path = base + realm_name + "/" + username
+        user_symlink_dst_path = base + "/" + realm_name + "/" + username
         user_symlink_src_path = self.root_mount_point + "/" + realm_name + "/" + volume_name + "/" + username
         
-        if not os.path.exists(user_symlink_path):
-            LOG.debug('Symlink missing at "' + user_symlink_path + '". Attempting to create.')
+        if not os.path.exists(user_symlink_dst_path):
+            LOG.debug('Creating missing symlink from "' + user_symlink_src_path + '" to "' + user_symlink_dst_path)
             os.symlink(user_symlink_src_path, user_symlink_dst_path)
             if not os.path.islink(user_symlink_dst_path):
                 LOG.debug('Failed to create a symlink at: "' + user_symlink_dst_path + '".')
@@ -154,6 +163,7 @@ class panlinks_plugin(plugin.action_plugin):
             LOG.debug("Could not find a volume with the least number of users.")
             raise UserError
 
+        LOG.debug("Found the volume with the least number of users: " + volume_with_least_users)
         return volume_with_least_users
 
     def get_user_original_directory_info(self, mounts, all_users):
@@ -169,7 +179,7 @@ class panlinks_plugin(plugin.action_plugin):
                 LOG.debug('Mount directory "' + mount_dir + '" is invalid.')
                 raise UserError
             for volume_dir in os.listdir(mount_dir):
-                if volume_dir.startswith("Lost+Found"):
+                if not volume_dir.startswith("vol"):
                     continue
                 volume_path = mount_dir + "/" + volume_dir
                 if not os.path.isdir(volume_path):
@@ -186,7 +196,7 @@ class panlinks_plugin(plugin.action_plugin):
                     }
                     users_with_dirs.append(user_dir)
 
-        intersection = all_users & users_with_dirs
+        intersection = set(all_users) & set(users_with_dirs)
         return intersection, users_on_realm_vols
 
     def cache_check_and_update(self, models):
@@ -200,12 +210,14 @@ class panlinks_plugin(plugin.action_plugin):
 
         def save_as_json(obj, dest_file_name):
             """Serializes obj to json and saves to a file at dest."""
+            LOG.debug("Saving to json at: " + dest_file_name)
             j = json.dumps(obj)
             f = open(dest_file_name, 'w')
             f.write(j + "\n")
             f.close()
 
         def json_to_models(json_file_name):
+            LOG.debug("Reading in json file at: " + json_file_name)
             f = open(json_file_name)
             return json.load(f)
 
@@ -227,10 +239,11 @@ class panlinks_plugin(plugin.action_plugin):
 
     def ensure_dir(self, path):
         """Create directory at path if it doesn't exist."""
+        LOG.debug("Ensure dir at '" + path + "' with perms '" + str(int(self.new_dir_perms, 8)) + "'.")
         try:
             os.makedirs(path)
             os.chmod(path, int(self.new_dir_perms, 8))
-        except OSError as exc:
+        except OSError, exc:
             if exc.errno == errno.EEXIST:
                 pass
             else:
@@ -258,6 +271,13 @@ class panlinks_plugin(plugin.action_plugin):
         else:
             LOG.warn('There are panfs mounts that are NOT mounted.')
             raise UserWarning
+
+        skips = list(self.realms_to_skip)
+        for s in skips:
+            LOG.debug("Not using realm '" + str(s) + "' due to configuration.")
+            mtab_mounts.discard(s)
+
+        LOG.debug("Using realms: " + str(mtab_mounts))
         return mtab_mounts
 
 # EOF
