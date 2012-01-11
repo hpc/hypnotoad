@@ -280,16 +280,26 @@ class panlinks_plugin(plugin.action_plugin):
         LOG.debug("Using realms: " + str(mtab_mounts))
         return mtab_mounts
 
-    def isdir(self, path):
-        if self.timeout_command('file -b ' + path, self.command_timeout).startswith("directory"):
+    def makedirs(path):
+        return self.timeout_command(['mkdir', '-p', path], self.command_timeout)
+
+    def chmod(path, perms):
+        return self.timeout_command(['chmod', perms, path], self.command_timeout)
+
+    def symlink(src, dest):
+        return self.timeout_command(['ln', '-s', src, dest], self.command_timeout)
+
+    def isdir(path):
+        cmd_output = timeout_command(['/usr/bin/file', '-b', path], self.command_timeout)
+        if "directory" in cmd_output[0]:
             return True
         else:
             return False
 
-    def timeout_command(self, command, timeout):
+    def timeout_command(command, timeout):
         """
         Call a shell command and either return its output or kill it. Continue
-        if the process doesn't get killed cleanly.
+        if the process doesn't get killed cleanly (for D-state).
         """
         start = datetime.datetime.now()
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -303,6 +313,6 @@ class panlinks_plugin(plugin.action_plugin):
                 os.waitpid(-1, os.WNOHANG)
                 raise IOError(errno.EWOULDBLOCK)
 
-        return proess.stdout.read()
+        return process.stdout.readlines()
 
 # EOF
