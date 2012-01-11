@@ -320,7 +320,7 @@ class panlinks_plugin(plugin.action_plugin):
             return True
 
     def listdir(self, path):
-        # TODO
+        return self.timeput_command['find', path, '-maxdepth', '1', '-printf', '"%f\\n"', self.command_timeout)
 
     def ismount(self, path):
         # TODO
