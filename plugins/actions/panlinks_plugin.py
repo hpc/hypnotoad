@@ -100,7 +100,7 @@ class panlinks_plugin(plugin.action_plugin):
             for u in pristine_users:
                 realm = pristine_where[u]['realm']
                 volume = pristine_where[u]['volume']
-                if hypnofs.ismount(self.pristine_mount_dir):
+                if hypnofs.ismount(self.pristine_mount_dir, self.command_timeout):
                     pristine_path = self.pristine_mount_dir + "/" + self.pristine_subdir
                     self.ensure_symlink_for_user(u, realm, volume, pristine_path)
                 else:
@@ -126,10 +126,10 @@ class panlinks_plugin(plugin.action_plugin):
         user_symlink_dst_path = base + "/" + realm_name + "/" + username
         user_symlink_src_path = self.root_mount_point + "/" + realm_name + "/" + volume_name + "/" + username
         
-        if not hypnofs.path_exists(user_symlink_dst_path):
+        if not hypnofs.path_exists(user_symlink_dst_path, self.command_timeout):
             LOG.debug('Creating missing symlink from "' + user_symlink_src_path + '" to "' + user_symlink_dst_path)
-            hypnofs.symlink(user_symlink_src_path, user_symlink_dst_path)
-            if not hypnofs.islink(user_symlink_dst_path):
+            hypnofs.symlink(user_symlink_src_path, user_symlink_dst_path, self.command_timeout)
+            if not hypnofs.islink(user_symlink_dst_path, self.command_timeout):
                 LOG.debug('Failed to create a symlink at: "' + user_symlink_dst_path + '".')
 
     def collect_users_from_models(self, models):
@@ -151,15 +151,15 @@ class panlinks_plugin(plugin.action_plugin):
         current_least_count = None
         realm_path = self.root_mount_point + "/" + realm
 
-        if not hypnofs.isdir(realm_path):
+        if not hypnofs.isdir(realm_path, self.command_timeout):
             LOG.debug('The specified realm path "' + realm_path + '" does not exist.')
             raise UserError
 
-        for volume_dir in hypnofs.listdir(realm_path):
-            if not hypnofs.isdir(volume_dir):
+        for volume_dir in hypnofs.listdir(realm_path, self.command_timeout):
+            if not hypnofs.isdir(volume_dir, self.command_timeout):
                 LOG.debug('Found a volume that is not a directory (' + volume_dir + ').')
                 raise UserError
-            users_in_this_volume = len(hypnofs.listdir(volume_dir))
+            users_in_this_volume = len(hypnofs.listdir(volume_dir, self.command_timeout))
             if current_least_count is None or users_in_this_volume < current_least_count:
                 volume_with_least_users = volume_dir
                 current_top_count = users_in_this_volume
@@ -180,19 +180,19 @@ class panlinks_plugin(plugin.action_plugin):
         users_with_dirs = []
 
         for mount_dir in mounts:
-            if not hypnofs.isdir(mount_dir):
+            if not hypnofs.isdir(mount_dir, self.command_timeout):
                 LOG.debug('Mount directory "' + mount_dir + '" is invalid.')
                 raise UserError
-            for volume_dir in hypnofs.listdir(mount_dir):
+            for volume_dir in hypnofs.listdir(mount_dir, self.command_timeout):
                 if not volume_dir.startswith("vol"):
                     continue
                 volume_path = mount_dir + "/" + volume_dir
-                if not hypnofs.isdir(volume_path):
+                if not hypnofs.isdir(volume_path, self.command_timeout):
                     LOG.debug('Volume directory "' + volume_path + '" is invalid.')
                     raise UserError
-                for user_dir in hypnofs.listdir(volume_path):
+                for user_dir in hypnofs.listdir(volume_path, self.command_timeout):
                     user_pth = volume_path + "/" + user_dir
-                    if not hypnofs.isdir(user_path):
+                    if not hypnofs.isdir(user_path, self.command_timeout):
                         LOG.debug('User directory "' + user_path + '" is invalid.')
                         raise UserError
                     users_on_realm_vols[user_dir] = {
@@ -246,8 +246,8 @@ class panlinks_plugin(plugin.action_plugin):
         """Create directory at path if it doesn't exist."""
         LOG.debug("Ensure dir at '" + path + "' with perms '" + str(int(self.new_dir_perms, 8)) + "'.")
         try:
-            hypnofs.makedirs(path)
-            hypnofs.chmod(path, int(self.new_dir_perms, 8))
+            hypnofs.makedirs(path, self.command_timeout)
+            hypnofs.chmod(path, int(self.new_dir_perms, 8), self.command_timeout)
         except OSError, exc:
             if exc.errno == errno.EEXIST:
                 pass

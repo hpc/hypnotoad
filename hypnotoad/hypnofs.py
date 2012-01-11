@@ -12,7 +12,7 @@ import subprocess
 LOG = logging.getLogger('root')
 
 class hypnofs(object):
-    def timeout_command(self, command, timeout=self.command_timeout):
+    def timeout_command(self, command, timeout=10):
         """
         Call a shell command and either return its output or kill it. Continue
         if the process doesn't get killed cleanly (for D-state).
@@ -31,29 +31,29 @@ class hypnofs(object):
 
         return process.stdout.readlines()
 
-    def makedirs(self, path):
+    def makedirs(self, path, timeout=10):
         """A fault tolerant version of os.makedirs()"""
-        return self.timeout_command(['mkdir', '-p', path])
+        return self.timeout_command(['mkdir', '-p', path], timeout)
 
-    def chmod(self, path, perms):
+    def chmod(self, path, perms, timeout=10):
         """A fault tolerant version of os.chmod()"""
-        return self.timeout_command(['chmod', perms, path])
+        return self.timeout_command(['chmod', perms, path], timeout)
 
-    def symlink(self, src, dest):
+    def symlink(self, src, dest, timeout=10):
         """A fault tolerant version of os.symlink()"""
-        return self.timeout_command(['ln', '-s', src, dest])
+        return self.timeout_command(['ln', '-s', src, dest], timeout)
 
-    def isdir(self, path):
+    def isdir(self, path, timeout=10):
         """A fault tolerant version of os.path.isdir()"""
-        cmd_output = self.timeout_command(['file', '-b', path])
+        cmd_output = self.timeout_command(['file', '-b', path], timeout)
         if "directory" in cmd_output[0]:
             return True
         else:
             return False
 
-    def isfile(self, path):
+    def isfile(self, path, timeout=10):
         """A fault tolerant version of os.path.isfile()"""
-        cmd_output = self.timeout_command(['file', '-b', path])
+        cmd_output = self.timeout_command(['file', '-b', path], timeout)
         if "directory" in cmd_output[0]:
             return False
         elif "ERROR" in cmd_output[0]:
@@ -61,29 +61,29 @@ class hypnofs(object):
         else:
             return True
 
-    def islink(self, path):
+    def islink(self, path, timeout=10):
         """A fault tolerant version of os.path.islink()"""
-        cmd_output = self.timeout_command(['file', '-b', path])
+        cmd_output = self.timeout_command(['file', '-b', path], timeout)
         if "symbolic link" in cmd_output[0]:
             return True
         else:
             return False
 
-    def path_exists(self, path):
+    def path_exists(self, path, timeout=10):
         """A fault tolerant version of os.path.exists()"""
-        cmd_output = self.timeout_command(['file', '-b', path])
+        cmd_output = self.timeout_command(['file', '-b', path], timeout)
         if "ERROR" in cmd_output[0]:
             return False
         else:
             return True
 
-    def listdir(self, path):
+    def listdir(self, path, timeout=10):
         """A fault tolerant version of os.listdir()"""
-        return self.timeput_command['find', path, '-maxdepth', '1', '-printf', '"%f\\n"'])
+        return self.timeput_command['find', path, '-maxdepth', '1', '-printf', '"%f\\n"'], timeout)
 
-    def ismount(self, path):
+    def ismount(self, path, timeout=10):
         """A fault tolerant version of os.path.ismount()"""
-        cmd_output = self.timeput_command['mountpoint', path], self.command_timeout)
+        cmd_output = self.timeput_command['mountpoint', path], timeout)
         if "is a mountpoint" in cmd_output[0]:
             return True
         else:
