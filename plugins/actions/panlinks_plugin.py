@@ -95,7 +95,7 @@ class panlinks_plugin(plugin.action_plugin):
             for u in pristine_users:
                 realm = pristine_where[u]['realm']
                 volume = pristine_where[u]['volume']
-                if os.path.ismount(self.pristine_mount_dir):
+                if self.ismount(self.pristine_mount_dir):
                     pristine_path = self.pristine_mount_dir + "/" + self.pristine_subdir
                     self.ensure_symlink_for_user(u, realm, volume, pristine_path)
                 else:
@@ -150,11 +150,11 @@ class panlinks_plugin(plugin.action_plugin):
             LOG.debug('The specified realm path "' + realm_path + '" does not exist.')
             raise UserError
 
-        for volume_dir in os.listdir(realm_path):
+        for volume_dir in self.listdir(realm_path):
             if not self.isdir(volume_dir):
                 LOG.debug('Found a volume that is not a directory (' + volume_dir + ').')
                 raise UserError
-            users_in_this_volume = len(os.listdir(volume_dir))
+            users_in_this_volume = len(self.listdir(volume_dir))
             if current_least_count is None or users_in_this_volume < current_least_count:
                 volume_with_least_users = volume_dir
                 current_top_count = users_in_this_volume
@@ -178,14 +178,14 @@ class panlinks_plugin(plugin.action_plugin):
             if not self.isdir(mount_dir):
                 LOG.debug('Mount directory "' + mount_dir + '" is invalid.')
                 raise UserError
-            for volume_dir in os.listdir(mount_dir):
+            for volume_dir in self.listdir(mount_dir):
                 if not volume_dir.startswith("vol"):
                     continue
                 volume_path = mount_dir + "/" + volume_dir
                 if not self.isdir(volume_path):
                     LOG.debug('Volume directory "' + volume_path + '" is invalid.')
                     raise UserError
-                for user_dir in os.listdir(volume_path):
+                for user_dir in self.listdir(volume_path):
                     user_pth = volume_path + "/" + user_dir
                     if not self.isdir(user_path):
                         LOG.debug('User directory "' + user_path + '" is invalid.')
