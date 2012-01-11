@@ -32,15 +32,19 @@ class hypnofs(object):
         return process.stdout.readlines()
 
     def makedirs(self, path):
+        """A fault tolerant version of os.makedirs()"""
         return self.timeout_command(['mkdir', '-p', path])
 
     def chmod(self, path, perms):
+        """A fault tolerant version of os.chmod()"""
         return self.timeout_command(['chmod', perms, path])
 
     def symlink(self, src, dest):
+        """A fault tolerant version of os.symlink()"""
         return self.timeout_command(['ln', '-s', src, dest])
 
     def isdir(self, path):
+        """A fault tolerant version of os.path.isdir()"""
         cmd_output = self.timeout_command(['file', '-b', path])
         if "directory" in cmd_output[0]:
             return True
@@ -48,6 +52,7 @@ class hypnofs(object):
             return False
 
     def isfile(self, path):
+        """A fault tolerant version of os.path.isfile()"""
         cmd_output = self.timeout_command(['file', '-b', path])
         if "directory" in cmd_output[0]:
             return False
@@ -57,6 +62,7 @@ class hypnofs(object):
             return True
 
     def islink(self, path):
+        """A fault tolerant version of os.path.islink()"""
         cmd_output = self.timeout_command(['file', '-b', path])
         if "symbolic link" in cmd_output[0]:
             return True
@@ -64,6 +70,7 @@ class hypnofs(object):
             return False
 
     def path_exists(self, path):
+        """A fault tolerant version of os.path.exists()"""
         cmd_output = self.timeout_command(['file', '-b', path])
         if "ERROR" in cmd_output[0]:
             return False
@@ -71,9 +78,11 @@ class hypnofs(object):
             return True
 
     def listdir(self, path):
+        """A fault tolerant version of os.listdir()"""
         return self.timeput_command['find', path, '-maxdepth', '1', '-printf', '"%f\\n"'])
 
     def ismount(self, path):
+        """A fault tolerant version of os.path.ismount()"""
         cmd_output = self.timeput_command['mountpoint', path], self.command_timeout)
         if "is a mountpoint" in cmd_output[0]:
             return True

@@ -36,6 +36,10 @@ class panlinks_plugin(plugin.action_plugin):
             self.max_skip_bad_realms = config.getint('Action Options', 'panlinks_max_skip_bad_realms')
             self.command_timeout = config.getint('Action Options', 'panlinks_subprocess_timeout')
 
+            # Setup failure counters
+            self.bad_volume_counter = 0
+            self.bad_realm_counter = 0
+
             self.realms_to_skip = shlex.shlex(config.get('Action Options', 'panlinks_skip_realms'))
             self.realms_to_skip_whitespace += ','
             self.realms_to_skip.whitespace_split = True
