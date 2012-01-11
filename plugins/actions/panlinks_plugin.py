@@ -121,10 +121,10 @@ class panlinks_plugin(plugin.action_plugin):
         user_symlink_dst_path = base + "/" + realm_name + "/" + username
         user_symlink_src_path = self.root_mount_point + "/" + realm_name + "/" + volume_name + "/" + username
         
-        if not os.path.exists(user_symlink_dst_path):
+        if not self.path_exists(user_symlink_dst_path):
             LOG.debug('Creating missing symlink from "' + user_symlink_src_path + '" to "' + user_symlink_dst_path)
             self.symlink(user_symlink_src_path, user_symlink_dst_path)
-            if not os.path.islink(user_symlink_dst_path):
+            if not self.islink(user_symlink_dst_path):
                 LOG.debug('Failed to create a symlink at: "' + user_symlink_dst_path + '".')
 
     def collect_users_from_models(self, models):
@@ -221,7 +221,7 @@ class panlinks_plugin(plugin.action_plugin):
             f = open(json_file_name)
             return json.load(f)
 
-        if os.path.isfile(cache_file_name):
+        if self.isfile(cache_file_name):
             old_models = json_to_models(cache_file_name)
 
             old_userlist, new_userlist = map(self.collect_users_from_models, [old_models, models])
@@ -241,8 +241,8 @@ class panlinks_plugin(plugin.action_plugin):
         """Create directory at path if it doesn't exist."""
         LOG.debug("Ensure dir at '" + path + "' with perms '" + str(int(self.new_dir_perms, 8)) + "'.")
         try:
-            os.makedirs(path)
-            os.chmod(path, int(self.new_dir_perms, 8))
+            self.makedirs(path)
+            self.chmod(path, int(self.new_dir_perms, 8))
         except OSError, exc:
             if exc.errno == errno.EEXIST:
                 pass
@@ -290,13 +290,39 @@ class panlinks_plugin(plugin.action_plugin):
         return self.timeout_command(['ln', '-s', src, dest], self.command_timeout)
 
     def isdir(self, path):
-        cmd_output = timeout_command(['/usr/bin/file', '-b', path], self.command_timeout)
+        cmd_output = self.timeout_command(['file', '-b', path], self.command_timeout)
         if "directory" in cmd_output[0]:
             return True
         else:
             return False
 
+    def isfile(self, path):
+        cmd_output = self.timeout_command(['file', '-b', path], self.command_timeout)
+        if "directory" in cmd_output[0]:
+            return False
+        elif "ERROR" in cmd_output[0]:
+            return False
+        else:
+            return True
+
+    def islink(self, path):
+        cmd_output = self.timeout_command(['file', '-b', path], self.command_timeout)
+        if "symbolic link" in cmd_output[0]:
+            return True
+        else:
+            return False
+
     def path_exists(self, path):
+        cmd_output = self.timeout_command(['file', '-b', path], self.command_timeout)
+        if "ERROR" in cmd_output[0]:
+            return False
+        else:
+            return True
+
+    def listdir(self, path):
+        # TODO
+
+    def ismount(self, path):
         # TODO
 
     def timeout_command(self, command, timeout):
