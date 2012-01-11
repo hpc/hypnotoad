@@ -137,11 +137,6 @@ Options:
 def version():
     LOG.debug("git:" + os.popen("git rev-parse HEAD").read().strip())
 
-    uncommits = Popen("git log --branches --not --remotes", shell=True, stdout=PIPE)
-    for line in uncommits.stdout:
-        if len(line.strip()) > 0:
-            LOG.debug("DIRTY: " + line)
-
 def main():
     version()
 
