@@ -132,8 +132,12 @@ class panlinks_plugin(plugin.action_plugin):
                     if self.volume_failures[realm] is None:
                         self.volume_failures[realm] = 1
                     else:
+                        LOG.debug("Encountered a failure on '" + realm + "'. Attempting to continue.")
+
                         self.volume_failures[realm]++
                         self.check_realm_failure_counters()
+
+                        return
                     pass
                 else:
                     raise
@@ -153,11 +157,26 @@ class panlinks_plugin(plugin.action_plugin):
         user_symlink_dst_path = base + "/" + realm_name + "/" + username
         user_symlink_src_path = self.root_mount_point + "/" + realm_name + "/" + volume_name + "/" + username
         
-        if not hypnofs.path_exists(user_symlink_dst_path, self.command_timeout):
-            LOG.debug('Creating missing symlink from "' + user_symlink_src_path + '" to "' + user_symlink_dst_path)
-            hypnofs.symlink(user_symlink_src_path, user_symlink_dst_path, self.command_timeout)
-            if not hypnofs.islink(user_symlink_dst_path, self.command_timeout):
-                LOG.debug('Failed to create a symlink at: "' + user_symlink_dst_path + '".')
+        try:
+            if not hypnofs.path_exists(user_symlink_dst_path, self.command_timeout):
+                LOG.debug('Creating missing symlink from "' + user_symlink_src_path + '" to "' + user_symlink_dst_path)
+                hypnofs.symlink(user_symlink_src_path, user_symlink_dst_path, self.command_timeout)
+                if not hypnofs.islink(user_symlink_dst_path, self.command_timeout):
+                    LOG.debug('Failed to create a symlink at: "' + user_symlink_dst_path + '".')
+        except IOError, exc:
+            if exc.errno == errno.EWOULDBLOCK:
+                if self.volume_failures[realm_name] is None:
+                    self.volume_failures[realm_name] = 1
+                else:
+                    LOG.debug("Encountered a failure on '" + realm_name + "'. Attempting to continue.")
+
+                    self.volume_failures[realm_name]++
+                    self.check_realm_failure_counters()
+
+                    return
+                pass
+            else:
+                raise
 
     def collect_users_from_models(self, models):
         """ Merge all hypnotoad models into a single list of user names."""
