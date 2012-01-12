@@ -107,6 +107,10 @@ class panlinks_plugin(plugin.action_plugin):
                     raise UserError
 
     def check_realm_failure_counters():
+        """
+        Check to see if the number of failures are still within the limits
+        defined by the configuration.
+        """
         LOG.debug("Checking realm and volume failures. Failure is likely in progress.")
 
         for realm, fail_count in volume_failures:
