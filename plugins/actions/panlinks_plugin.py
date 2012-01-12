@@ -36,10 +36,6 @@ class panlinks_plugin(plugin.action_plugin):
             self.max_skip_bad_realms = config.getint('Action Options', 'panlinks_max_skip_bad_realms')
             self.command_timeout = config.getint('Action Options', 'panlinks_subprocess_timeout')
 
-            # Setup failure counters
-            self.bad_volume_counter = 0
-            self.bad_realm_counter = 0
-
             self.realms_to_skip = shlex.shlex(config.get('Action Options', 'panlinks_skip_realms'))
             self.realms_to_skip_whitespace += ','
             self.realms_to_skip.whitespace_split = True
@@ -50,6 +46,9 @@ class panlinks_plugin(plugin.action_plugin):
 
             self.config = config
             self.model_version = model_version
+
+            self.volume_failures = {}
+            self.realm_failures = {}
         else:
             self.plugin_enabled = False
 
@@ -107,10 +106,38 @@ class panlinks_plugin(plugin.action_plugin):
                     LOG.debug("Pristine base path was not mounted.")
                     raise UserError
 
+    def check_realm_failure_counters():
+        LOG.debug("Checking realm and volume failures. Failure is likely in progress.")
+
+        for realm, fail_count in volume_failures:
+            if fail_count > self.max_skip_bad_vols:
+                LOG.debug("Too many volumes have failed on '" + realm + "'. Realm is now considered in a failed state.")
+                if self.realm_failures[realm] is None:
+                    self.realm_failures[realm] = 1
+                else:
+                    self.realm_failures[realm]++
+
+        for realm, fail_count in realm_failures:
+            if fail_count > self.max_skip_bad_realms:
+                LOG.debug("Too many realms have failed. We're giving up.")
+                sys.exit("Exceeded number of allowed realm failures.")
+
     def create_initial_directories_for(self, username, realms):
         """Create a new directory on each realm for the specified user."""
         for realm in realms:
-            vol_name = self.get_volume_with_least_users(realm)
+            try:
+                vol_name = self.get_volume_with_least_users(realm)
+            except IOError, exc:
+                if exc.errno == errno.EWOULDBLOCK:
+                    if self.volume_failures[realm] is None:
+                        self.volume_failures[realm] = 1
+                    else:
+                        self.volume_failures[realm]++
+                        self.check_realm_failure_counters()
+                    pass
+                else:
+                    raise
+
             user_dir_path = self.root_mount_point + "/" + realm + "/" + vol_name + "/" + username
 
             LOG.debug('Creating initial user directory "' + user_dir_path + '" for user "' + username)
