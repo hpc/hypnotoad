@@ -79,11 +79,11 @@ class hypnofs(object):
 
     def listdir(self, path, timeout=10):
         """A fault tolerant version of os.listdir()"""
-        return self.timeput_command(['find', path, '-maxdepth', '1', '-printf', '"%f\\n"'], timeout)
+        return self.timeout_command(['find', path, '-maxdepth', '1', '-printf', '"%f\\n"'], timeout)
 
     def ismount(self, path, timeout=10):
         """A fault tolerant version of os.path.ismount()"""
-        cmd_output = self.timeput_command['mountpoint', path], timeout)
+        cmd_output = self.timeout_command(['mountpoint', path], timeout)
         if "is a mountpoint" in cmd_output[0]:
             return True
         else:
