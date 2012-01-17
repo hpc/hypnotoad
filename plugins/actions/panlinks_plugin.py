@@ -37,7 +37,7 @@ class panlinks_plugin(plugin.action_plugin):
             self.command_timeout = config.getint('Action Options', 'panlinks_subprocess_timeout')
 
             self.realms_to_skip = shlex.shlex(config.get('Action Options', 'panlinks_skip_realms'))
-            self.realms_to_skip_whitespace += ','
+            self.realms_to_skip.whitespace += ','
             self.realms_to_skip.whitespace_split = True
 
             self.create_pristine = config.getboolean('Action Options', 'panlinks_pristine_dir_create')
