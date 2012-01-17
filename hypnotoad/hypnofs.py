@@ -54,7 +54,10 @@ class hypnofs(object):
     def isfile(self, path, timeout=10):
         """A fault tolerant version of os.path.isfile()"""
         cmd_output = self.timeout_command(['file', '-b', path], timeout)
-        if "directory" in cmd_output[0]:
+
+        if len(cmd_output) < 1:
+            return False
+        elif "directory" in cmd_output[0]:
             return False
         elif "ERROR" in cmd_output[0]:
             return False
