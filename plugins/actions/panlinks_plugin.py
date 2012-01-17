@@ -119,7 +119,7 @@ class panlinks_plugin(plugin.action_plugin):
                 if self.realm_failures[realm] is None:
                     self.realm_failures[realm] = 1
                 else:
-                    self.realm_failures[realm]++
+                    self.realm_failures[realm] = self.realm_failures[realm] + 1
 
         for realm, fail_count in realm_failures:
             if fail_count > self.max_skip_bad_realms:
@@ -138,7 +138,7 @@ class panlinks_plugin(plugin.action_plugin):
                     else:
                         LOG.debug("Encountered a failure on '" + realm + "'. Attempting to continue.")
 
-                        self.volume_failures[realm]++
+                        self.volume_failures[realm] = self.volume_failures[realm] + 1
                         self.check_realm_failure_counters()
 
                         return
@@ -174,7 +174,7 @@ class panlinks_plugin(plugin.action_plugin):
                 else:
                     LOG.debug("Encountered a failure on '" + realm_name + "'. Attempting to continue.")
 
-                    self.volume_failures[realm_name]++
+                    self.volume_failures[realm_name] = self.volume_failures[realm_name] + 1
                     self.check_realm_failure_counters()
 
                     return
