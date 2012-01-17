@@ -79,7 +79,7 @@ class hypnofs(object):
 
     def listdir(self, path, timeout=10):
         """A fault tolerant version of os.listdir()"""
-        return self.timeput_command['find', path, '-maxdepth', '1', '-printf', '"%f\\n"'], timeout)
+        return self.timeput_command(['find', path, '-maxdepth', '1', '-printf', '"%f\\n"'], timeout)
 
     def ismount(self, path, timeout=10):
         """A fault tolerant version of os.path.ismount()"""
