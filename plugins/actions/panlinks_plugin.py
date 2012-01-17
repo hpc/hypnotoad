@@ -276,7 +276,7 @@ class panlinks_plugin(plugin.action_plugin):
             f = open(json_file_name)
             return json.load(f)
 
-        if self.isfile(cache_file_name):
+        if HYPNOFS.isfile(cache_file_name):
             old_models = json_to_models(cache_file_name)
 
             old_userlist, new_userlist = map(self.collect_users_from_models, [old_models, models])
