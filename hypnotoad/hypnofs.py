@@ -4,14 +4,33 @@
 #
 
 import datetime
+import time
 import errno
 import logging
 import os
 import subprocess
+import signal
 
 LOG = logging.getLogger('root')
 
 class hypnofs(object):
+    def throws_blocking_filesystem_exception(self, func, **kwargs):
+        """
+        Check to see if a blocking filesystem operation is in progress.
+        Returns a tuple of True and None is the operation does block,
+        otherwise, returns False and results if the operation was performed
+        with success.
+        """
+        result = None
+        try:
+            result = func(**kwargs)
+        except IOError, exc:
+            if exc.args[0] == errno.EWOULDBLOCK:
+                return True, None
+            else:
+                raise
+        return False, result
+
     def timeout_command(self, command, timeout=10):
         """
         Call a shell command and either return its output or kill it. Continue
@@ -82,7 +101,7 @@ class hypnofs(object):
 
     def listdir(self, path, timeout=10):
         """A fault tolerant version of os.listdir()"""
-        return self.timeout_command(['find', path, '-maxdepth', '1', '-printf', '"%f\\n"'], timeout)
+        return [i.strip() for i in self.timeout_command(['find', path, '-maxdepth', '1', '-printf', '%f\\n'], timeout)]
 
     def ismount(self, path, timeout=10):
         """A fault tolerant version of os.path.ismount()"""
