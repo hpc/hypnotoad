@@ -43,7 +43,7 @@ class passwd_file_plugin(plugin.action_plugin):
                         full_name = user['full_name_string'].strip()
                         gid = user['group_id_integer']
                         uid = user['user_id_integer']
-                        homedir = user['home_director_string']
+                        homedir = user['home_directory_string']
                         shell = user['login_shell_string']
 
                         print '%s:x:%s:%s:%s:%s:%s' % (short_name, uid, gid, full_name, homedir, shell)
