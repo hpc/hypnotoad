@@ -5,7 +5,15 @@ data sources to various applications on a cluster using a standard interface.
 
 Requirements
 ------------
-Python 2.6 or newer with ldap support.
+Python 2.6 or newer with ldap support (if you wish to use the LDAP plugins).
+
+Available Plugins
+-----------------
+* ''ldap'' - A data model to work with the nextgen LANL LDAP schema.
+* ''moab'' - An action to output directory priority information to moab.
+* ''oldldap'' - A data model to work with the legady LANL LDAP schema.
+* ''panlinks'' - An action to create new user directories and Panasas symlinks.
+* ''slurm'' - An action to output directory priority information to slurm.
 
 Design Overview
 ---------------
