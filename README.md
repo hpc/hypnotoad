@@ -11,7 +11,7 @@ Available Plugins
 -----------------
 * ''ldap'' - A data model to work with the nextgen LANL LDAP schema.
 * ''moab'' - An action to output directory priority information to moab.
-* ''oldldap'' - A data model to work with the legady LANL LDAP schema.
+* ''oldldap'' - A data model to work with the legacy LANL LDAP schema.
 * ''panlinks'' - An action to create new user directories and Panasas symlinks.
 * ''slurm'' - An action to output directory priority information to slurm.
 
