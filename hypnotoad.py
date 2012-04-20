@@ -83,6 +83,7 @@ def send_input_to_output(config):
         action_plugins = make_plugins(plugin.action_plugin)
 
         # Now check to see if we have valid plugins.
+        LOG.debug("Checking for valid plugins.")
         def check_plugins(plugins):
             if len(plugins) < 1:
                 LOG.error("It looks like we had trouble loading plugins.")
@@ -135,7 +136,7 @@ Options:
     """
 
 def version():
-    LOG.debug("git:" + os.popen("git rev-parse HEAD").read().strip())
+    LOG.critical("git:" + os.popen("git rev-parse HEAD").read().strip())
 
 def main():
     version()
@@ -167,6 +168,8 @@ def main():
 
 LOG = hypnolog.setup_logger('root')
 if __name__ == "__main__":
-    LOG.debug("Execution started.")
+    LOG.info("Execution started.")
     main()
-    LOG.debug("Execution finished.")
+    LOG.info("Execution finished.")
+
+# EOF
