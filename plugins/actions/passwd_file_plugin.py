@@ -1,5 +1,5 @@
 #
-# A passwd file generator action plugin for hypnotoad.
+# A passwd file generation action plugin for hypnotoad.
 #
 
 from hypnotoad import plugin
