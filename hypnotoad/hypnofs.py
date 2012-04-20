@@ -17,7 +17,7 @@ class hypnofs(object):
     def throws_blocking_filesystem_exception(self, func, **kwargs):
         """
         Check to see if a blocking filesystem operation is in progress.
-        Returns a tuple of True and None is the operation does block,
+        Returns a tuple of True and None if the operation does block,
         otherwise, returns False and results if the operation was performed
         with success.
         """
@@ -52,14 +52,22 @@ class hypnofs(object):
 
     def makedirs(self, path, timeout=10):
         """A fault tolerant version of os.makedirs()"""
+        LOG.debug("Creating directory with path of '" + path + "'.")
         return self.timeout_command(['mkdir', '-p', path], timeout)
 
     def chmod(self, path, perms, timeout=10):
         """A fault tolerant version of os.chmod()"""
+        LOG.debug("Changing permissions of '" + path + "' to '" + perms + "'.")
         return self.timeout_command(['chmod', perms, path], timeout)
+
+    def chown(self, path, owner='-1', group='-1', timeout=10):
+        """A fault tolerant version of os.chown()."""
+        LOG.debug("Changing ownership of '" + path + "' to '" + owner + ":" + group + "'.")
+        return self.timeout_command(['chown', owner + ':' + group, path], timeout)
 
     def symlink(self, src, dest, timeout=10):
         """A fault tolerant version of os.symlink()"""
+        LOG.debug("Creating a symlink from '" + src + "' to '" + dest + "'.")
         return self.timeout_command(['ln', '-s', src, dest], timeout)
 
     def isdir(self, path, timeout=10):
@@ -73,7 +81,6 @@ class hypnofs(object):
     def isfile(self, path, timeout=10):
         """A fault tolerant version of os.path.isfile()"""
         cmd_output = self.timeout_command(['file', '-b', path], timeout)
-
         if len(cmd_output) < 1:
             return False
         elif "directory" in cmd_output[0]:
@@ -101,6 +108,7 @@ class hypnofs(object):
 
     def listdir(self, path, timeout=10):
         """A fault tolerant version of os.listdir()"""
+#        LOG.debug("Listing all entries in directory: '" + path + "'.")
         return [i.strip() for i in self.timeout_command(['find', path, '-maxdepth', '1', '-printf', '%f\\n'], timeout)]
 
     def ismount(self, path, timeout=10):
