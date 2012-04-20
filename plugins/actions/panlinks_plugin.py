@@ -29,7 +29,7 @@ class panlinks_plugin(plugin.action_plugin):
             LOG.debug("Panasas Links plugin enabled")
 
             #
-            # Gather configutation options.
+            # Gather configuration options.
             #
             self.state_dir = config.get('Basic Options', 'state_dir') + "/panlinks"
             self.new_dir_perms = config.get('Action Options', 'panlinks_new_dir_perms')
@@ -99,13 +99,13 @@ class panlinks_plugin(plugin.action_plugin):
         output += "single execution of the Panasas symlinks and directory creation script.\n"
         output += "-------------------------------------------------------------------------\n"
         output += "A message of 'no_volume_specified' indicates that the list of volumes\n"
-        output += "could not be determines (i.e. An 'ls' of the realm volume directory).\n"
+        output += "could not be determined (i.e. An 'ls' of the realm volume directory).\n"
         output += "-------------------------------------------------------------------------\n\n"
 
         for realm_key in self.filesystem_failures.keys():
             output += "Realm '" + str(realm_key) + "' failures:\n"
             for volume_key in self.filesystem_failures[realm_key].keys():
-                output += "    * Volume '" + str(volume_key) + "' failed'" + str(self.filesystem_failures[realm_key][volume_key]) + "' time(s).\n"
+                output += "    * Volume '" + str(volume_key) + "' failed '" + str(self.filesystem_failures[realm_key][volume_key]) + "' time(s).\n"
 
             output += "\n"
 
@@ -134,12 +134,13 @@ class panlinks_plugin(plugin.action_plugin):
         for u in users_with_orig_dirs:
             if u in all_usernames:
                 user_on = where_user_orig_dir_is[u]
-                for realm in mounted_panfs_lit:
-                    if not realm in user_on_keys():
-                        if not realm in users_with_missing_orig_dirs[u]:
-                            users_with_missing_orig_dirs[u].append(realm)
-                    else:
-                        users_with_missing_orig_dirs[u] = [realm]
+                for realm in mounted_panfs_list:
+                    if not realm in user_on.keys():
+                        if u in users_with_missing_orig_dirs.keys():
+                            if not realm in users_with_missing_orig_dirs[u]:
+                                users_with_missing_orig_dirs[u].append(realm)
+                        else:
+                            users_with_missing_orig_dirs[u] = [realm]
         LOG.info("Users with accounts, but some missing directories: " + str(len(users_with_missing_orig_dirs.keys())))
 
         unknown_users_with_directories = []
@@ -155,7 +156,7 @@ class panlinks_plugin(plugin.action_plugin):
 
         """Create missing directories and symlinks."""
         for user in users_with_missing_orig_dirs.keys():
-            for realm in users_with_missing_orig_dirs[users]:
+            for realm in users_with_missing_orig_dirs[user]:
                 if not realm in self.filesystem_failures.keys():
                     self.create_missing_directories_for(user, realm)
 
@@ -183,24 +184,24 @@ class panlinks_plugin(plugin.action_plugin):
                 LOG.error("Pristine base path was not mounted (" + str(self.pristine_mount_dir) + ").")
                 sys.exit()
 
-    def create_initial_directories_for(self, username, realm):
+    def create_missing_directories_for(self, username, realm):
         """Create a new directory on each realm for the specified user."""
 
         realm = os.path.basename(os.path.normpath(realm))
 
         # More trouble in finding a volume? Then skip this realm.
         vol_name = self.get_volume_with_least_users(realm)
-        if vol_name = None:
+        if vol_name is None:
             return
 
         user_dir_path = self.root_mount_point + "/" + realm + "/" + vol_name + "/" + username
 
-        # Skip realms that may be having trouble  
-        if realm in self.filesystem_failures.keys():  
-            #LOG.warning("Due to failure, not creating new user directory on '" + realm + "'.")  
-            return  
+        # Skip realms that may be having trouble
+        if realm in self.filesystem_failures.keys():
+            #LOG.warning("Due to failure, not creating new user directory on '" + realm + "'.")
+            return
 
-        LOG.debug('Creating initial user directory "' + user_dir_path + '" for user "' + username)
+        LOG.info('Creating initial user directory "' + user_dir_path + '" for user "' + username)
         self.ensure_dir(user_dir_path)
 
         LOG.debug('Chowning new directory to "' + username + '":users.')
@@ -302,13 +303,18 @@ class panlinks_plugin(plugin.action_plugin):
         for mount_dir in mounts:
 
             kwargs = { 'path': mount_dir, 'timeout': self.command_timeout }
+            if not self.catch_blocking_filesystem_exception(mount_dir, None, FS.isdir, **kwargs):
+                LOG.warning('Mount directory "' + mount_dir + '" is invalid or experiencing a failure.')
+                continue
+
+            kwargs = { 'path': mount_dir, 'timeout': self.command_timeout }
             for volume_dir in self.catch_blocking_filesystem_exception(mount_dir, None, FS.listdir, **kwargs):
                 if not volume_dir.startswith("vol"):
                     continue
 
                 volume_path = mount_dir + "/" + volume_dir
                 volume_path = volume_path.strip()
-#                LOG.debug("Found volume at: + volume_path)
+#                LOG.debug("Found volume at: " + volume_path)
 
                 kwargs = { 'path': volume_path, 'timeout': self.command_timeout }
                 if not self.catch_blocking_filesystem_exception(mount_dir, volume_dir, FS.isdir, **kwargs):
@@ -364,7 +370,6 @@ class panlinks_plugin(plugin.action_plugin):
                             ]
                         else:
                             where_users_on_realm_vols[user_dir][mount_dir].append(volume_dir)
-
 
                     if not user_dir.strip() == volume_dir.strip():
                         if not user_dir.strip() in users_with_dirs:
@@ -491,7 +496,7 @@ class panlinks_plugin(plugin.action_plugin):
 
             for realm_key in self.filesystem_failures.keys():
                 for volume_key in self.filesystem_failures[realm_key].keys():
-                    # This info messsage is tailored for parsing by splunk
+                    # This info message is tailored for parsing by splunk
                     LOG.info("Hypnotoad filesystem failure detected: realm=" + str(os.path.basename(os.path.normpath(realm_key))) + " volume=" + str(volume_key) + \
                              " count=" + str(self.filesystem_failures[realm_key][volume_key]) + " timeout=" + str(self.command_timeout))
         else:
@@ -506,7 +511,7 @@ class panlinks_plugin(plugin.action_plugin):
         for realm_key in self.filesystem_failures.iterkeys():
             total_vol_failures = 0
 
-            for volume_key in self.filessytem_failures[realm_key].iterkeys():
+            for volume_key in self.filesystem_failures[realm_key].iterkeys():
                 total_vol_failures += 1
 
             if total_vol_failures > self.max_skip_bad_vols:
