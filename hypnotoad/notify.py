@@ -2,15 +2,20 @@
 # Common ways to notify remote locations.
 #
 
+import logging
 import smtplib
 
 from email.mime.text import MIMEText
 
+LOG = logging.getLogger('root')
+
 class notify(object):
-    def email(self, to_list, message, subject="[hypnotoad] Notification", from_address="nobody@nowhere", smtp_server="mail.lanl.gov"):
+    def email(self, to_list, message, subject="Notification", from_address="nobody@nowhere", smtp_server="pobox1663.lanl.gov"):
+        LOG.debug("Sending an email.")
+
         email = MIMEText(message)
 
-        email['Subject'] = subject
+        email['Subject'] = "[hypnotoad] " + str(subject)
         email['From'] = from_address
         email['To'] = ', '.join(to_list)
 
