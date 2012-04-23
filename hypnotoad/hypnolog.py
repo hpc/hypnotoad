@@ -2,7 +2,7 @@ import logging
 import logging.handlers
 
 def setup_logger(name, enable_syslog=True):
-    formatter = logging.Formatter(fmt='HT_PANLINKS %(asctime)s - %(levelname)s - %(module)s - %(message)s')
+    formatter = logging.Formatter(fmt='HT_PANLINKS %(asctime)s - %(levelname)s - %(module)s - %(message)s\r\n')
 
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
