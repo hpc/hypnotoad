@@ -20,9 +20,6 @@ class hypnofs(object):
         Call a shell command and either return its output or kill it. Continue
         if the process doesn't get killed cleanly (for D-state).
         """
-
-        raise IOError(errno.EWOULDBLOCK)
-
         start = datetime.datetime.now()
         process = subprocess.Popen( \
             command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -157,7 +154,7 @@ class hypnofs(object):
 
         if failed:
             return None, failed
-        return [i.strip() for i in cmd_output]
+        return [i.strip() for i in cmd_output], failed
 
     def ismount(self, path, timeout=10, fail_cb=None, fail_obj=None):
         """A fault tolerant version of os.path.ismount()"""
