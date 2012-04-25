@@ -86,6 +86,7 @@ The prefered method for serializing this data format is JSON.
     * login_shell_string             # the login shell for this user
     * priority_fairshare_float       # fairshare priority target
     * priority_qos_name_array        # qos available to this user
+    * compartment_access_array       # access list of compartments (i.e. ic or asc)
 
 Credits
 -------
