@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/opt/python27/bin/python
 
 import logging
 import sys
