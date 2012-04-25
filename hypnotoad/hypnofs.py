@@ -14,30 +14,18 @@ import signal
 LOG = logging.getLogger('root')
 
 class hypnofs(object):
-    def throws_blocking_filesystem_exception(self, func, **kwargs):
-        """
-        Check to see if a blocking filesystem operation is in progress.
-        Returns a tuple of True and None if the operation does block,
-        otherwise, returns False and results if the operation was performed
-        with success.
-        """
-        result = None
-        try:
-            result = func(**kwargs)
-        except IOError, exc:
-            if exc.args[0] == errno.EWOULDBLOCK:
-                return True, None
-            else:
-                raise
-        return False, result
 
     def timeout_command(self, command, timeout=10):
         """
         Call a shell command and either return its output or kill it. Continue
         if the process doesn't get killed cleanly (for D-state).
         """
+
+        raise IOError(errno.EWOULDBLOCK)
+
         start = datetime.datetime.now()
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process = subprocess.Popen( \
+            command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         while process.poll() is None:
             time.sleep(0.1)
@@ -50,73 +38,136 @@ class hypnofs(object):
 
         return process.stdout.readlines()
 
-    def makedirs(self, path, timeout=10):
+    def callback_wrap(self, args, timeout, fail_cb, fail_obj, throw_exc=False):
+        """
+        Wraps a command with the potential for timeout to provide a
+        callback on failure feature.
+        """
+        result = None
+        failed = False
+
+        try:
+            result = self.timeout_command(args, timeout)
+        except IOError, exc:
+            if exc.args[0] == errno.EWOULDBLOCK:
+                if fail_cb:
+                    fail_cb(fail_obj)
+                failed = True
+            if throw_exc:
+                raise
+
+        return result, failed
+
+    def makedirs(self, path, timeout=10, fail_cb=None, fail_obj=None):
         """A fault tolerant version of os.makedirs()"""
+
         LOG.debug("Creating directory with path of '" + path + "'.")
-        return self.timeout_command(['mkdir', '-p', path], timeout)
 
-    def chmod(self, path, perms, timeout=10):
+        result, failed = self.callback_wrap( \
+            ['mkdir', '-p', path], timeout, fail_cb, fail_obj)
+
+        return result, failed
+
+    def chmod(self, path, perms, timeout=10, fail_cb=None, fail_obj=None):
         """A fault tolerant version of os.chmod()"""
+
         LOG.debug("Changing permissions of '" + path + "' to '" + perms + "'.")
-        return self.timeout_command(['chmod', perms, path], timeout)
 
-    def chown(self, path, owner='-1', group='-1', timeout=10):
+        result, failed = self.callback_wrap( \
+            ['chmod', perms, path], timeout, fail_cb, fail_obj)
+
+        return result, failed
+
+    def chown(self, path, owner='-1', group='-1', timeout=10, \
+        fail_cb=None, fail_obj=None):
         """A fault tolerant version of os.chown()."""
-        LOG.debug("Changing ownership of '" + path + "' to '" + owner + ":" + group + "'.")
-        return self.timeout_command(['chown', owner + ':' + group, path], timeout)
 
-    def symlink(self, src, dest, timeout=10):
+        LOG.debug("Changing ownership of '" + \
+            path + "' to '" + owner + ":" + group + "'.")
+
+        result, failed = self.callback_wrap( \
+            ['chown', owner + ':' + group, path], timeout, fail_cb, fail_obj)
+
+        return result, failed
+
+    def symlink(self, src, dest, timeout=10, fail_cb=None, fail_obj=None):
         """A fault tolerant version of os.symlink()"""
+
         LOG.debug("Creating a symlink from '" + src + "' to '" + dest + "'.")
-        return self.timeout_command(['ln', '-s', src, dest], timeout)
 
-    def isdir(self, path, timeout=10):
+        result, failed = self.callback_wrap( \
+            ['ln', '-s', src, dest], timeout, fail_cb, fail_obj)
+
+        return result, failed
+
+    def isdir(self, path, timeout=10, fail_cb=None, fail_obj=None):
         """A fault tolerant version of os.path.isdir()"""
-        cmd_output = self.timeout_command(['file', '-b', path], timeout)
+
+        cmd_output, failed = self.callback_wrap( \
+            ['file', '-b', path], timeout, fail_cb, fail_obj)
+
         if "directory" in cmd_output[0]:
-            return True
+            return True, failed
         else:
-            return False
+            return False, failed
 
-    def isfile(self, path, timeout=10):
+    def isfile(self, path, timeout=10, fail_cb=None, fail_obj=None):
         """A fault tolerant version of os.path.isfile()"""
-        cmd_output = self.timeout_command(['file', '-b', path], timeout)
+
+        cmd_output, failed = self.callback_wrap( \
+            ['file', '-b', path], timeout, fail_cb, fail_obj)
+
         if len(cmd_output) < 1:
-            return False
+            return False, failed
         elif "directory" in cmd_output[0]:
-            return False
+            return False, failed
         elif "ERROR" in cmd_output[0]:
-            return False
+            return False, failed
         else:
-            return True
+            return True, failed
 
-    def islink(self, path, timeout=10):
+    def islink(self, path, timeout=10, fail_cb=None, fail_obj=None):
         """A fault tolerant version of os.path.islink()"""
-        cmd_output = self.timeout_command(['file', '-b', path], timeout)
+
+        cmd_output, failed = self.callback_wrap( \
+            ['file', '-b', path], timeout, fail_cb, fail_obj)
+
         if "symbolic link" in cmd_output[0]:
-            return True
+            return True, failed
         else:
-            return False
+            return False, failed
 
-    def path_exists(self, path, timeout=10):
+    def path_exists(self, path, timeout=10, fail_cb=None, fail_obj=None):
         """A fault tolerant version of os.path.exists()"""
-        cmd_output = self.timeout_command(['file', '-b', path], timeout)
+
+        cmd_output, failed = self.callback_wrap( \
+            ['file', '-b', path], timeout, fail_cb, fail_obj)
+
         if "ERROR" in cmd_output[0]:
-            return False
+            return False, failed
         else:
-            return True
+            return True, failed
 
-    def listdir(self, path, timeout=10):
+    def listdir(self, path, timeout=10, fail_cb=None, fail_obj=None):
         """A fault tolerant version of os.listdir()"""
-#        LOG.debug("Listing all entries in directory: '" + path + "'.")
-        return [i.strip() for i in self.timeout_command(['find', path, '-maxdepth', '1', '-printf', '%f\\n'], timeout)]
 
-    def ismount(self, path, timeout=10):
+        cmd_output, failed = self.callback_wrap( \
+            ['find', path, '-maxdepth', '1', '-printf', '%f\\n'], \
+            timeout, fail_cb, fail_obj)
+
+        if failed:
+            return None, failed
+        return [i.strip() for i in cmd_output]
+
+    def ismount(self, path, timeout=10, fail_cb=None, fail_obj=None):
         """A fault tolerant version of os.path.ismount()"""
-        cmd_output = self.timeout_command(['mountpoint', path], timeout)
+
+        cmd_output, failed = self.callback_wrap( \
+            ['mountpoint', path], timeout, fail_cb, fail_obj)
+
         if "is a mountpoint" in cmd_output[0]:
-            return True
+            return True, failed
         else:
-            return False
+            return False, failed
 
 # EOF
