@@ -64,10 +64,15 @@ class panlinks_plugin(plugin.action_plugin):
 
             raise UserError
 
-            # Attempt to create home directories where none exist as well as
-            # perform symlink creation.
+            # Create the convenience symlinks. Note that a newly added user
+            # will need to wait until the next time the panlinks script is
+            # run before they have convienence symlinks added. This avoids
+            # a second pass on the disk in a single run.
             homes_helper = HomesHelper(self.config)
-            homes_helper.create_missing_homes(disk_users, datamodel_users)
-            homes_helper.create_convenience_symlinks(datamodel_users)
+            homes_helper.create_convenience_symlinks(disk_users)
+
+            # Attempt to create home directories where none exist.
+            # perform symlink creation.
+            homes_helper.create_missing_homes(disk_users, datamodel_users, realms)
 
 # EOF
