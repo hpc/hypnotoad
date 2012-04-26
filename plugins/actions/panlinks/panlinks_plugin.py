@@ -36,7 +36,7 @@ class panlinks_plugin(plugin.action_plugin):
             LOG.debug("Got to Panasas Links plugin teardown")
 
     def append_model(self, models):
-        """Handled a model appended to this output."""
+        """Handle a model appended to this output."""
         if self.plugin_enabled:
             LOG.debug("Got to Panasas Links plugin append_model.")
 

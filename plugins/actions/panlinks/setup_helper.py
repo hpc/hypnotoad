@@ -35,6 +35,7 @@ class SetupHelper():
                 if 'user_entry' in m.keys():
                     user_model = m['user_entry']
                     user = ScratchUser(user_model['short_name_string'])
+                    user.uid = int(user_model['user_id_integer'])
                     for c in user_model['compartment_access_array']:
                         user.compartments.append(ScratchCompartment(c))
                     users.append(user)

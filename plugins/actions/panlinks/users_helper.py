@@ -57,6 +57,11 @@ class UsersHelper():
         set for the compartment, then by finding what volume in the
         volume set has the least number of users.
         """
+        if len(r.failures) > 0:
+            LOG.debug("Skipping home creation on realm `" + r.base_name + \
+                "' since we might have an incomplete volume listing.")
+            return
+
         volume_set = None
         for c in realm.compartments:
             if c.short_name == compartment.short_name:
@@ -90,8 +95,21 @@ class UsersHelper():
             LOG.error("Setting permissions on a new user directory failed! TODO: Better reporting here.")
             return
 
-        # Now set the ownership
-        (_, failed) = FS.chown(path, user.short_name, user.short_name, self.command_timeout)
+        # Check to see if a group name is specified, otherwise we'll default
+        # to using the user name as the group name.
+        try:
+            group_name = config.get('Action Options', 'panlinks_new_dir_group')
+        except ConfigParser.NoOptionError:
+            group_name = user.short_name
+
+        # Now lets verify the UID to make sure it's sane.
+        if not isinstance(user.uid, int) or user.uid < 1:
+            LOG.error("Attempted to chmod a new directory for user `" +
+                user.short_name + "' with a uid of `" + user.uid + "'.")
+            return
+
+        # Now we can actually change the ownership.
+        (_, failed) = FS.chown(path, user.uid, group_name, self.command_timeout)
         if failed:
             LOG.error("Setting ownership of a new user directory failed! TODO: Better reporting here.")
             return
