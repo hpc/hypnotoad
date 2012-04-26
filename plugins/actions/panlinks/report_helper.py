@@ -1,5 +1,5 @@
 #
-# An action plugin for hypnotoad to create panasas links.
+# A helper for printing out reports for the panlinks plugin.
 #
 
 import sys
@@ -22,6 +22,9 @@ class ReportHelper():
         self.users_helper = UsersHelper(self.config)
 
     def print_summary(self, datamodel_users, disk_users, realms):
+        """
+        Print a summary of what was found when analyzing the realms.
+        """
         LOG.info("Found `" + str(len(datamodel_users)) + \
             "' users in the datamodel (ldap).")
         LOG.info("Found `" + str(len(disk_users)) + \
@@ -44,6 +47,10 @@ class ReportHelper():
             str([u.short_name for u in with_disk_no_datamodel]))
 
     def dump_user_info(self, users):
+        """
+        Dump basic information on each user in the array of users. Useful
+        for debugging.
+        """
         for u in users:
             LOG.info("User: `" + u.short_name + "'")
             for h in u.homes:
@@ -51,6 +58,10 @@ class ReportHelper():
                     h.realm.base_name + "'")
 
     def dump_realm_info(self, realms):
+        """
+        Dump basic information on each realm in the array of realms. Useful
+        for debugging.
+        """
         for r in realms:
             LOG.info("Realm: `" + r.base_name + "'")
             for c in r.compartments:

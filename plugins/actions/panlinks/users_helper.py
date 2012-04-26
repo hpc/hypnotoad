@@ -32,6 +32,10 @@ class UsersHelper():
         self.compartment_options = json.loads(compartment_options_json)
 
     def create_missing_homes(self, disk_users, datamodel_users, realms):
+        """
+        Create missing home directories under each realm for the users which
+        have a datamodel entry, but do not have a disk entry.
+        """
         LOG.debug("Creating missing home directories.")
 
         users_missing_homes = self.users_missing_homes( \
@@ -82,6 +86,10 @@ class UsersHelper():
         self.commit_home_to_disk(full_path, user)
 
     def commit_home_to_disk(self, path, user):
+        """
+        Perform the operations required to create a home directory on a realm
+        where one does not currently exist.
+        """  
 
         # Lets go ahead and actually create the directory
         (_, failed) = FS.makedirs(path, self.command_timeout)
@@ -127,6 +135,12 @@ class UsersHelper():
             return None
 
     def create_convenience_symlinks(self, disk_users):
+        """
+        Create convienience symlinks. Convienience symlinks are symlinks
+        which allow users to use their home space without needing to know
+        know what volume in a realm they actually have a directory on.
+        """
+
         # Check to see if the filesystem for convenience symlinks
         # is mounted.
         (result, failure) = FS.ismount( \
@@ -172,12 +186,19 @@ class UsersHelper():
         return
 
     def commit_symlink_to_disk(self, src_path, dest_path):
+        """
+        Perform the operations necessary to lay a symlink down onto disk.
+        """
         (_, failed) = FS.symlink(src_path, dest_path, self.command_timeout)
         if failed:
             LOG.error("Could not create a symlink to `" + dest_path + "'.")
         return
 
     def users_missing_homes(self, disk_users, datamodel_users, realms):
+        """
+        Determine what users should have a home on the realms
+        specified, but does not.
+        """
         users = []
         all_compartments = {}
 
@@ -203,10 +224,13 @@ class UsersHelper():
         
         # Debug
         #self.dump_user_info(users)
-
         return users
 
     def users_in_this_and_that(self, this, that):
+        """
+        Determine the users in this list and that list. Returns a list
+        of objects pointing to this objects.
+        """
         users = []
         that_hash = {}
         for u in that:
@@ -217,6 +241,10 @@ class UsersHelper():
         return users
 
     def users_in_this_not_that(self, this, that):
+        """
+        Determine the users in this list, but not that list. Returns
+        a list of objects pointing to this objects.
+        """
         users = []
         that_hash = {}
         for u in that:

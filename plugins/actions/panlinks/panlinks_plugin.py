@@ -26,6 +26,7 @@ class panlinks_plugin(plugin.action_plugin):
             self.config = config
             self.model_version = model_version
 
+            # Determine if convenience symlinks should be created.
             self.create_convenience = config.getboolean('Action Options', 'panlinks_convenience_create')
         else:
             self.plugin_enabled = False
@@ -61,7 +62,7 @@ class panlinks_plugin(plugin.action_plugin):
             report_helper = ReportHelper(self.config)
             report_helper.print_summary(datamodel_users, disk_users, realms)
 
-            # For debugging
+            # For debugging, completely dump information on all realms.
             #report_helper.dump_realm_info(realms)
 
             # Create the convenience symlinks. Note that a newly added user

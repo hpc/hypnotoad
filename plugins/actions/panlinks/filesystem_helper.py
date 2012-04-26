@@ -117,6 +117,10 @@ class FileSystemHelper():
         return compartments
 
     def gather_volume_info(self, name, realm, compartment):
+        """
+        Gather information on a realm's volume. Volumes objects
+        describe what users are contained within.
+        """
         volume = ScratchVolume(name, realm, compartment)
         volume.absolute_path = os.path.join(realm.absolute_path, name)
 
@@ -132,6 +136,11 @@ class FileSystemHelper():
         return volume
 
     def gather_user_info(self, name, realm, compartment, volume):
+        """
+        Gather information on users within a realm's volumes. User objects
+        contain information on what compartments they're in as well as
+        volume information.
+        """
         user = ScratchUser(name)
 
         home = ScratchHome(realm, volume, compartment, user)

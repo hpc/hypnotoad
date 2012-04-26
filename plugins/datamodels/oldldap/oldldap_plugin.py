@@ -56,7 +56,6 @@ class oldldap_plugin(plugin.data_model_plugin):
 
     def get_model(self):
         """Look up information in this data model."""
-
         model = []
 
         if self.plugin_enabled:
