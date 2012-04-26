@@ -95,18 +95,18 @@ class UsersHelper():
             LOG.error("Setting permissions on a new user directory failed! TODO: Better reporting here.")
             return
 
-        # Check to see if a group name is specified, otherwise we'll default
-        # to using the user name as the group name.
-        try:
-            group_name = config.get('Action Options', 'panlinks_new_dir_group')
-        except ConfigParser.NoOptionError:
-            group_name = user.short_name
-
         # Now lets verify the UID to make sure it's sane.
         if not isinstance(user.uid, int) or user.uid < 1:
             LOG.error("Attempted to chmod a new directory for user `" +
                 user.short_name + "' with a uid of `" + user.uid + "'.")
             return
+
+        # Check to see if a group name is specified, otherwise we'll default
+        # to using the user name as the group name.
+        try:
+            group_name = config.get('Action Options', 'panlinks_new_dir_group')
+        except ConfigParser.NoOptionError:
+            group_name = user.uid
 
         # Now we can actually change the ownership.
         (_, failed) = FS.chown(path, user.uid, group_name, self.command_timeout)
