@@ -22,15 +22,19 @@ class oldldap_plugin(plugin.data_model_plugin):
             ldap_url = config.get('Data Model Options', 'oldldap_server')
             self.ldap_dc  = config.get('Data Model Options', 'oldldap_dc')
 
-            ldap_timeout = config.getfloat('Data Model Options', 'oldldap_timeout')
+            ldap_timeout = config.getfloat( \
+                'Data Model Options', 'oldldap_timeout')
 
-            self.use_groups = config.getboolean('Data Model Options', 'oldldap_use_groups')
+            self.use_groups = config.getboolean( \
+                'Data Model Options', 'oldldap_use_groups')
 
             # Check to see what OUs map to what compartment.
-            self.user_compartment_ous = json.loads(config.get('Data Model Options', 'oldldap_user_compartment_ous'))
+            self.user_compartment_ous = json.loads(config.get( \
+                'Data Model Options', 'oldldap_user_compartment_ous'))
 
             for compartment, ous in self.user_compartment_ous.iteritems():
-                LOG.debug("Populating compartment `" + compartment + "' with OUs  `" + str(set(ous)) + "'.")
+                LOG.debug("Populating compartment `" + compartment + \
+                    "' with OUs  `" + str(set(ous)) + "'.")
 
             LOG.debug("URL: " + ldap_url)
             LOG.debug("Base DC: " + self.ldap_dc)
@@ -76,13 +80,14 @@ class oldldap_plugin(plugin.data_model_plugin):
                     ])
 
                     if self.use_groups:
-                        #
                         # TODO:
-                        # Go though each group and remove users that are not included in a group.
-                        #
+                        # Go though each group and remove users that are not
+                        # included in a group.
                         raise NotImplementedError
 
-                    LOG.debug("Populating model for compartment `" + compartment + "' with OU `" + str(ou_name) + "' (`" + str(len(users)) + "' users).")
+                    LOG.debug("Populating model for compartment `" + \
+                        compartment + "' with OU `" + str(ou_name) + \
+                        "' (`" + str(len(users)) + "' users).")
 
                     for u in users:
                         dn, attrs = u
