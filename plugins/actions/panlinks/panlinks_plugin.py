@@ -25,6 +25,8 @@ class panlinks_plugin(plugin.action_plugin):
 
             self.config = config
             self.model_version = model_version
+
+            self.create_convenience = config.getboolean('Action Options', 'panlinks_convenience_create')
         else:
             self.plugin_enabled = False
 
@@ -62,17 +64,16 @@ class panlinks_plugin(plugin.action_plugin):
             # For debugging
             #report_helper.dump_realm_info(realms)
 
-            raise UserError
-
             # Create the convenience symlinks. Note that a newly added user
             # will need to wait until the next time the panlinks script is
             # run before they have convienence symlinks added. This avoids
             # a second pass on the disk in a single run.
-            homes_helper = HomesHelper(self.config)
-            homes_helper.create_convenience_symlinks(disk_users)
+            users_helper = UsersHelper(self.config)
+            if self.create_convenience:
+                users_helper.create_convenience_symlinks(disk_users)
 
             # Attempt to create home directories where none exist.
             # perform symlink creation.
-            homes_helper.create_missing_homes(disk_users, datamodel_users, realms)
+            users_helper.create_missing_homes(disk_users, datamodel_users, realms)
 
 # EOF
