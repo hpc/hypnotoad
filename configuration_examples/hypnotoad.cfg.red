@@ -62,9 +62,9 @@ panlinks_new_dir_perms:        0700   ; permissions for new directories
 panlinks_max_skip_bad_vols:    3      ; max number of bad volumes to skip
 panlinks_max_skip_bad_realms:  1      ; max number of bad realms to skip
 panlinks_subprocess_timeout:   4      ; max seconds to wait for a subprocess
-panlinks_pristine_dir_create:  yes    ; should we create a pristine directory
-panlinks_pristine_mount_dir:   /usr/projects ; the root mount point for pristine
-panlinks_pristine_subdir:      systems/links ; the subdir for pristine
+panlinks_convenience_create:   yes    ; should we create convenience symlinks
+panlinks_convenience_mount:    /usr/projects ; the mount for convenience symlinks
+panlinks_convenience_subdir:   systems/links ; subdir for convenience symlinks
 panlinks_skip_realms:          all-realms-active ; comma seperated list of realms to skip
 
 ; This is a list of options for each compartment. "vol_regex" is a regular
