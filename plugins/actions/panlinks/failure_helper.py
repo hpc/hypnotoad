@@ -20,7 +20,8 @@ class FailureHelper:
 
         output = "Hypnotoad's Panasas Failure Report!\n"
         output += "=========================================================================\n"
-        output += "This is a counter of operations that took longer than '" + str(self.command_timeout) + "' seconds during a\n"
+        output += "This is a counter of operations that took longer than '" + \
+            str(self.command_timeout) + "' seconds during a\n"
         output += "single execution of the Panasas symlinks and directory creation script.\n"
         output += "-------------------------------------------------------------------------\n"
         output += "A message of 'no_volume_specified' indicates that the list of volumes\n"
