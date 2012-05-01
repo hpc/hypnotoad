@@ -60,6 +60,7 @@ The prefered method for serializing this data format is JSON.
     * location_campus_string         # campus location (i.e. Los Alamos)
     * location_building_string       # building name (i.e. LDCC)
     * location_room_string           # room number (i.e. 205)
+    * location_wkt_string            # well known text markup (vector geometry)
     * fairshare_halflife_float       # fairshare decay factor
     * fairshare_interval_float       # fairshare window size
     * fairshare_depth_float          # fairshare depth size
