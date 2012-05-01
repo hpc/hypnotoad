@@ -129,7 +129,12 @@ class UsersHelper():
         for u in disk_users:
             for h in u.homes:
                 c_name = h.compartment.short_name
-                prefix = self.compartment_options[c_name]['symlink_prefix']
+
+                if self.compartment_options[c_name]['symlink_prefix']:
+                    prefix = self.compartment_options[c_name]['symlink_prefix']:
+                else:
+                    prefix = ""
+
                 dir_layout.append(prefix + h.realm.base_name)
         for base_name in set(dir_layout):
             layout_dir = os.path.join(root_symlinks_path, base_name)
@@ -141,7 +146,10 @@ class UsersHelper():
         for u in disk_users:
             for h in u.homes:
                 c_name = h.compartment.short_name
-                prefix = self.compartment_options[c_name]['symlink_prefix']
+                if self.compartment_options[c_name]['symlink_prefix']:
+                    prefix = self.compartment_options[c_name]['symlink_prefix']:
+                else:
+                    prefix = ""
 
                 src_path = os.path.join(h.volume.absolute_path, u.short_name)
                 dest_path = os.path.join( \
