@@ -73,7 +73,6 @@ panlinks_skip_realms:          all-realms-active ; comma seperated list of realm
 panlinks_compartment_options:  { "asc":
                                  {
                                    "vol_regex": "/(^vol\\d{1,}$)/ix",
-                                   "symlink_prefix": ""
                                  }
                                }
 

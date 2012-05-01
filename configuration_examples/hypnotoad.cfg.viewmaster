@@ -1,6 +1,7 @@
 ; ========================================================================
 ;
-;              A sample hypnotoad configuration file.
+;  A sample hypnotoad configuration file for the red network with
+;  additions to enable a compartment for a viewmaster realm.
 ;
 ; ========================================================================
 
@@ -28,7 +29,7 @@ ldap_ou_user:                  user
 
 ; Options for the old LANL HPC LDAP plugin.
 oldldap_plugin_enabled:        yes
-oldldap_server:                ldap://turq-accts.lanl.gov
+oldldap_server:                ldap://hpcldap.lanl.gov
 oldldap_timeout:               30
 oldldap_dc:                    DC=hpc,DC=lanl,DC=gov
 oldldap_group_ou:              group-ou-not-used
@@ -37,10 +38,8 @@ oldldap_use_groups:            no  ; collect group data (expensive)
 ; This is a nested structure of compartments that contain OUs which contain
 ; users of that compartment.
 oldldap_user_compartment_ous:  {
-                                 "ic":
-                                 [
-                                   "scratch"
-                                 ]
+                                 "asc": [ "nfs.lanl.gov" ],
+                                 "vm": [ "viewmaster-users" ]
                                }
 
 ; ========================================================================
@@ -67,23 +66,22 @@ panlinks_new_dir_perms:        0700   ; permissions for new directories
 panlinks_max_skip_bad_vols:    3      ; max number of bad volumes to skip
 panlinks_max_skip_bad_realms:  1      ; max number of bad realms to skip
 panlinks_subprocess_timeout:   4      ; max seconds to wait for a subprocess
-panlinks_convenience_create:   yes    ; should we create convenience symlinks
-panlinks_convenience_mount:    /usr/projects ; the mount for convenience symlinks
-panlinks_convenience_subdir:   systems/links ; subdir for convenience symlinks
+panlinks_pristine_dir_create:  yes    ; should we create a pristine directory
+panlinks_pristine_mount_dir:   /usr/projects ; the root mount point for pristine
+panlinks_pristine_subdir:      systems/links ; the subdir for pristine
 panlinks_skip_realms:          all-realms-active ; comma seperated list of realms to skip
 
 ; This is a list of options for each compartment. "vol_regex" is a regular
 ; expression to match on a volume list in each realm. "symlink_prefix" is
 ; the prefix to be used for symlink creation to each volume's user directories.
 panlinks_compartment_options:  {
-                                 "ic":
-                                 {
-                                   "vol_regex": "vol\\d{1,}(?ix)",
-                                 },
                                  "asc":
                                  {
-                                   "vol_regex": "avol\\d{1,}(?ix)",
-                                   "symlink_prefix": "a"
+                                   "vol_regex": "/(^vol\\d{1,}$)/ix",
+                                 },
+                                 "vm":
+                                 {
+                                   "realm_regex": "/(^vmscratch$)/ix",
                                  }
                                }
 
