@@ -5,6 +5,7 @@
 class ScratchUser(object):
     def __init__(self, short_name):
         self.short_name = short_name
+        self.uid = None
         self.compartments = []
         self.volumes = []
         self.homes = []
