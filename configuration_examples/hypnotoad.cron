@@ -1,0 +1,57 @@
+#!/bin/bash
+##############################################################################
+#
+# This is a cron script to run hypnotoad.
+#
+# This script is versioned in git. Please do not make significant changes
+# to this without ensuring that the changes are properly pushed upstream.
+#
+#   Depending on how hypnotoad is configured (see HYPNOTOAD_HOME/hypnotoad.cfg
+#   for detailed configuration information), this script may perform the
+#   following tasks:
+#
+#     * Panasas symlinks generation.
+#     * Panasas user directory creation.
+#     * Transfer of user, group, and priority data to moab and/or slurm.
+#     * Password and group file generation.
+#
+#   Author: Jon Bringhurst <jonb@lanl.gov>
+#
+##############################################################################
+
+# Custom path so we have a sane version of python and git. Hypnotoad requires
+# python >= 2.7 to properly function. A working version of git is highly
+# recommended for proper logging.
+PATH=$PATH:/opt/python27/bin:/opt/git17/bin
+
+# Should debug level notification emails be sent. This will send detailed
+# logging information to DEBUG_EMAIL each time hypnotoad is executed.
+DEBUG_MODE=1
+
+# The email to send detailed debug messages to.
+DEBUG_EMAIL="jonb@lanl.gov"
+
+# The base directory where the root of the hypnotoad source code is located.
+HYPNOTOAD_HOME=/opt/hypnotoad
+
+##############################################################################
+# Nothing below this line should be modified without serious consideration.
+##############################################################################
+
+# The location of the main starting point.
+HYPNOTOAD_PY=$HYPNOTOAD_HOME/hypnotoad.py
+
+# Run in a subshell and collect the output.
+pushd $HYPNOTOAD_HOME
+OUTPUT=$($HYPNOTOAD_PY 2>&1)
+popd
+
+# Send debug logging information to DEBUG_EMAIL if requested.
+if [ "$DEBUG_MODE" != "" ]; then
+  echo $OUTPUT | mail -s \
+    "[hypnotoad debug] Panasas symlinks generation log" $DEBUG_EMAIL
+fi
+
+##############################################################################
+# EOF
+##############################################################################
