@@ -22,15 +22,25 @@ class FileSystemHelper():
         self.new_dir_perms = config.get('Action Options', 'panlinks_new_dir_perms')
         self.command_timeout = config.getint('Action Options', 'panlinks_subprocess_timeout')
 
-        # How to tell what volumes match up to each compartment.
+        # How to tell what volumes match up to each compartment. As well as
+        # overrides for specifying a compartment for an entire realm.
         compartment_options_json = config.get('Action Options', 'panlinks_compartment_options')
         self.compartment_options = json.loads(compartment_options_json)
 
-        # Cache the compartment matchers.
+        # Cache the compartment matchers for volumes and realms.
         for c, opts in self.compartment_options.iteritems():
-            self.compartment_options[c]['volume_matcher'] = re.compile(opts['vol_regex'])
-            LOG.debug("Compartment `" + str(c) + "' using volume regex `" + opts['vol_regex'] +
-                "' with symlink prefix `" + opts['symlink_prefix'] + "'.")
+
+            if opts['vol_regex']:
+                self.compartment_options[c]['volume_matcher'] = re.compile(opts['vol_regex'])
+                LOG.debug("Compartment `" + str(c) + \
+                    "' using volume regex `" + opts['vol_regex'] +
+                    "' with symlink prefix `" + str(opts['symlink_prefix']) + "'.")
+
+            if opts['realm_regex']:
+                self.compartment_options[c]['realm_matcher'] = re.compile(opts['realm_regex'])
+                LOG.debug("Compartment `" + str(c) + \
+                    "' using realm regex `" + opts['realm_regex'])
+                    "' with symlink prefix `" + str(opts['symlink_prefix']) + "'.")
 
     def gather_users_from_realms(self, realms):
         """
@@ -98,21 +108,45 @@ class FileSystemHelper():
             return compartments
         LOG.debug("Volume list: `" + str(volume_names) + "'.")
 
+        # If a realm matcher isn't specified, base the compartment on
+        # the volume.
         for compartment_name in self.compartment_options.iterkeys():
-            compartment = ScratchCompartment(compartment_name)
-            matcher = self.compartment_options[compartment_name]['volume_matcher']
 
-            for volume_name in volume_names:
-                if matcher.match(volume_name):
-                    volume = self.gather_volume_info(volume_name, realm, compartment)
-                    compartment.volumes.append(volume)
+                compartment = ScratchCompartment(compartment_name)
 
-                    #LOG.debug("Placed volume `" + volume_name + \
-                    #    "' on realm `" + realm.base_name + \
-                    #    "' into compartment `" + compartment_name + "'.")
+                # Check to see if every volume in this realm should be in
+                # the new compartment. Realm matchers override volume
+                # matchers.
+                if self.compartment_options[compartment_name]['realm_matcher']:
+                    realm_matcher = self.compartment_options[compartment_name]['realm_matcher']
+                    if realm_matcher.match(realm.base_name):
+                        for volume_name in volume_names:
+                            volume = self.gather_volume_info(volume_name, realm, compartment)
+                            compartment.volumes.append(volume)
 
-            if len(compartment.volumes) > 0:
-                compartments.append(compartment)
+                            #LOG.debug("Using realm matcher, " + \
+                            #    "placed volume `" + volume_name + \
+                            #    "' on realm `" + realm.base_name + \
+                            #    "' into compartment `" + compartment_name + "'.")
+
+                # Check to see if only specific volumes in this realm should
+                # be in the new compartment.
+                elif self.compartment_options[compartment_name]['volume_matcher']:
+                    vol_matcher = self.compartment_options[compartment_name]['volume_matcher']
+
+                    for volume_name in volume_names:
+                        if vol_matcher.match(volume_name):
+                            volume = self.gather_volume_info(volume_name, realm, compartment)
+                            compartment.volumes.append(volume)
+
+                            #LOG.debug("Using volume matcher, " + \
+                            #    "placed volume `" + volume_name + \
+                            #    "' on realm `" + realm.base_name + \
+                            #    "' into compartment `" + compartment_name + "'.")
+
+                # Add this new compartment into the total.
+                if len(compartment.volumes) > 0:
+                    compartments.append(compartment)
 
         return compartments
 

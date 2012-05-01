@@ -70,7 +70,10 @@ panlinks_skip_realms:          all-realms-active ; comma seperated list of realm
 ; This is a list of options for each compartment. "vol_regex" is a regular
 ; expression to match on a volume list in each realm. "symlink_prefix" is
 ; the prefix to be used for symlink creation to each volume's user directories.
-panlinks_compartment_options:  { "asc":
+; "realm_regex" is a regular expression to match a compartment to an entire
+; realm. Realm matchers override volume matchers.
+panlinks_compartment_options:  {
+                               "asc":
                                  {
                                    "vol_regex": "/(^vol\\d{1,}$)/ix",
                                  }
