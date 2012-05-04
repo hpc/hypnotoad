@@ -38,6 +38,8 @@ class ReportHelper():
             "' users with datamodel (ldap) entries, but no entries on disk.")
         LOG.info("Found `" + str(len(users_missing_homes)) + \
             "' users with datamodel (ldap) entries, but some entries on disk.")
+        LOG.info("Listing users with datamodel (ldap) entry, but some entries on disk: `" + \
+            str([u.short_name for (u,r,c) in users_missing_homes]))
         LOG.info("Found `" + str(len(with_disk_no_datamodel)) + \
             "' users entries on disk, but no datamodel (ldap) entries.")
         LOG.info("Listing users on disk, but no datamodel (ldap) entry: `" + \
