@@ -58,7 +58,7 @@ class hypnofs(object):
     def makedirs(self, path, timeout=10, fail_cb=None, fail_obj=None):
         """A fault tolerant version of os.makedirs()"""
 
-        LOG.debug("Creating directory with path of '" + path + "'.")
+        #LOG.debug("Creating directory with path of '" + path + "'.")
 
         result, failed = self.callback_wrap( \
             ['mkdir', '-p', path], timeout, fail_cb, fail_obj)
