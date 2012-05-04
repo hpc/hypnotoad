@@ -84,6 +84,11 @@ class oldldap_plugin(plugin.data_model_plugin):
 
                     LOG.debug("Populating model for compartment `" + compartment + "' with OU `" + str(ou_name) + "' (`" + str(len(users)) + "' users).")
 
+                    #LOG.debug("\r\n\r\n\r\n\r\n")
+                    #for u in users:
+                    #    _, a = u
+                    #    LOG.debug("uid = " + a['uid'][0])
+
                     for u in users:
                         dn, attrs = u
 
