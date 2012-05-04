@@ -33,7 +33,7 @@ class UsersHelper():
         self.compartment_options = json.loads(compartment_options_json)
 
     def create_missing_homes(self, disk_users, datamodel_users, realms):
-        LOG.debug("Creating missing home directories.")
+        #LOG.debug("Creating missing home directories.")
 
         users_missing_homes = self.users_missing_homes( \
             disk_users, datamodel_users, realms)

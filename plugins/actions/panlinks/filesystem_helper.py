@@ -106,7 +106,7 @@ class FileSystemHelper():
         if failed_to_list:
             realm.failures.append(ScratchFailure("Failed to list any volumes."))
             return compartments
-        LOG.debug("Volume list: `" + str(volume_names) + "'.")
+        #LOG.debug("Volume list: `" + str(volume_names) + "'.")
 
         # If a realm matcher isn't specified, base the compartment on
         # the volume.

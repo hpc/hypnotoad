@@ -84,9 +84,9 @@ class oldldap_plugin(plugin.data_model_plugin):
                         # included in a group.
                         raise NotImplementedError
 
-                    LOG.debug("Populating model for compartment `" + \
-                        compartment + "' with OU `" + str(ou_name) + \
-                        "' (`" + str(len(users)) + "' users).")
+                    #LOG.debug("Populating model for compartment `" + \
+                    #    compartment + "' with OU `" + str(ou_name) + \
+                    #    "' (`" + str(len(users)) + "' users).")
 
                     #LOG.debug("\r\n\r\n\r\n\r\n")
                     #for u in users:
