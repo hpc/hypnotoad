@@ -70,7 +70,7 @@ class panlinks_plugin(plugin.action_plugin):
             # a second pass on the disk in a single run.
             users_helper = UsersHelper(self.config)
             if self.create_convenience:
-                users_helper.create_convenience_symlinks(disk_users)
+                users_helper.create_convenience_symlinks(disk_users, datamodel_users)
 
             # Attempt to create home directories where none exist.
             # perform symlink creation.
