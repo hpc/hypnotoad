@@ -91,3 +91,11 @@ The prefered method for serializing this data format is JSON.
 Credits
 -------
 See the included AUTHORS file for a list of contributors.
+    ___
+   /   `.
+  J     | 
+ (,)(,) |  
+  L7 -- | 
+  ((((> | 
+   L::::J ...why not zoidberg?
+
