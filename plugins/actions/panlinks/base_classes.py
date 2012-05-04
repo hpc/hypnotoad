@@ -3,9 +3,10 @@
 #
 
 class ScratchUser(object):
-    def __init__(self, short_name):
+    def __init__(self, short_name, uid="-1", gid="-1"):
         self.short_name = short_name
-        self.uid = None
+        self.uid = uid
+        self.gid = gid
         self.compartments = []
         self.volumes = []
         self.homes = []

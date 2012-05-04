@@ -12,6 +12,7 @@ sys.path.append(os.path.abspath('plugins/actions/panlinks'))
 
 from hypnotoad import hypnofs
 from base_classes import *
+from report_helper import *
 
 LOG = logging.getLogger('root')
 FS = hypnofs.hypnofs()
@@ -32,23 +33,10 @@ class UsersHelper():
         self.compartment_options = json.loads(compartment_options_json)
 
     def create_missing_homes(self, disk_users, datamodel_users, realms):
-        """
-        Create missing home directories under each realm for the users which
-        have a datamodel entry, but do not have a disk entry.
-        """
         LOG.debug("Creating missing home directories.")
 
         users_missing_homes = self.users_missing_homes( \
             disk_users, datamodel_users, realms)
-        users_without_homes = self.users_in_this_not_that( \
-            datamodel_users, disk_users)
-
-        for u in users_without_homes:
-            # Create a new directory on all realms.
-            LOG.debug("Creating directory on all realms for user `" + k.short_name + "'.")
-            for c in u.compartments:
-                for r in realms:
-                    self.create_home(u, r, c)
 
         for u,r,c in users_missing_homes:
             LOG.debug("Creating new directory for user `" + \
@@ -61,11 +49,6 @@ class UsersHelper():
         set for the compartment, then by finding what volume in the
         volume set has the least number of users.
         """
-        if len(r.failures) > 0:
-            LOG.debug("Skipping home creation on realm `" + r.base_name + \
-                "' since we might have an incomplete volume listing.")
-            return
-
         volume_set = None
         for c in realm.compartments:
             if c.short_name == compartment.short_name:
@@ -76,8 +59,8 @@ class UsersHelper():
             return
         volume_to_use = self.get_volume_with_least_users(volume_set)
 
-        #LOG.debug("Home creation volume set is " + str([v.absolute_path for v in volume_set]) + ".")
-        #LOG.debug("Volume with least users is `" + volume_to_use.absolute_path + "'.")
+        LOG.debug("Home creation volume set is " + str([v.absolute_path for v in volume_set]) + ".")
+        LOG.debug("Volume with least users is `" + volume_to_use.absolute_path + "'.")
 
         full_path = os.path.join(volume_to_use.absolute_path, user.short_name)
         LOG.info("Creating a user home for `" + \
@@ -86,10 +69,6 @@ class UsersHelper():
         self.commit_home_to_disk(full_path, user)
 
     def commit_home_to_disk(self, path, user):
-        """
-        Perform the operations required to create a home directory on a realm
-        where one does not currently exist.
-        """  
 
         # Lets go ahead and actually create the directory
         (_, failed) = FS.makedirs(path, self.command_timeout)
@@ -103,21 +82,8 @@ class UsersHelper():
             LOG.error("Setting permissions on a new user directory failed! TODO: Better reporting here.")
             return
 
-        # Now lets verify the UID to make sure it's sane.
-        if not isinstance(user.uid, int) or user.uid < 1:
-            LOG.error("Attempted to chmod a new directory for user `" +
-                user.short_name + "' with a uid of `" + user.uid + "'.")
-            return
-
-        # Check to see if a group name is specified, otherwise we'll default
-        # to using the user name as the group name.
-        try:
-            group_name = config.get('Action Options', 'panlinks_new_dir_group')
-        except ConfigParser.NoOptionError:
-            group_name = user.uid
-
-        # Now we can actually change the ownership.
-        (_, failed) = FS.chown(path, user.uid, group_name, self.command_timeout)
+        # Now set the ownership
+        (_, failed) = FS.chown(path, user.uid, user.gid, self.command_timeout)
         if failed:
             LOG.error("Setting ownership of a new user directory failed! TODO: Better reporting here.")
             return
@@ -134,13 +100,7 @@ class UsersHelper():
         else:
             return None
 
-    def create_convenience_symlinks(self, disk_users):
-        """
-        Create convienience symlinks. Convienience symlinks are symlinks
-        which allow users to use their home space without needing to know
-        know what volume in a realm they actually have a directory on.
-        """
-
+    def create_convenience_symlinks(self, disk_users, datamodel_users):
         # Check to see if the filesystem for convenience symlinks
         # is mounted.
         (result, failure) = FS.ismount( \
@@ -151,6 +111,9 @@ class UsersHelper():
                 "on this run.")
             return
 
+        andusers = self.users_in_this_and_that( \
+            disk_users, datamodel_users)
+
         root_symlinks_path = os.path.join( \
             self.convenience_mount_dir, self.convenience_subdir)
         LOG.debug("Using root path of `" + root_symlinks_path + \
@@ -158,12 +121,12 @@ class UsersHelper():
 
         # Lay out the directory structure.
         dir_layout = []
-        for u in disk_users:
+        for u in andusers:
             for h in u.homes:
                 c_name = h.compartment.short_name
 
                 if self.compartment_options[c_name]['symlink_prefix']:
-                    prefix = self.compartment_options[c_name]['symlink_prefix']:
+                    prefix = self.compartment_options[c_name]['symlink_prefix']
                 else:
                     prefix = ""
 
@@ -175,28 +138,22 @@ class UsersHelper():
                 LOG.error("Creation of a new user directory failed! TODO: Better reporting here.")
                 return
 
-        for u in disk_users:
+        for u in andusers:
             for h in u.homes:
                 c_name = h.compartment.short_name
-                if self.compartment_options[c_name]['symlink_prefix']:
-                    prefix = self.compartment_options[c_name]['symlink_prefix']:
-                else:
-                    prefix = ""
+                prefix = self.compartment_options[c_name]['symlink_prefix']
 
                 src_path = os.path.join(h.volume.absolute_path, u.short_name)
                 dest_path = os.path.join( \
                     root_symlinks_path, prefix + h.realm.base_name, \
                     u.short_name)
 
-                LOG.debug("Creating convenience symlink from `" + src_path + "' to `" + dest_path + "'.")
+                #LOG.debug("Creating convenience symlink from `" + src_path + "' to `" + dest_path + "'.")
                 self.commit_symlink_to_disk(src_path, dest_path)
 
         return
 
     def commit_symlink_to_disk(self, src_path, dest_path):
-        """
-        Perform the operations necessary to lay a symlink down onto disk.
-        """
         (_, failed) = FS.symlink(src_path, dest_path, self.command_timeout)
         if failed:
             LOG.error("Could not create a symlink to `" + dest_path + "'.")
@@ -204,41 +161,58 @@ class UsersHelper():
 
     def users_missing_homes(self, disk_users, datamodel_users, realms):
         """
-        Determine what users should have a home on the realms
-        specified, but does not.
+        Find all users who are missing home directories.
         """
         users = []
         all_compartments = {}
 
-        andusers = self.users_in_this_and_that( \
-            disk_users, datamodel_users)
+        LOG.debug("Checking `" + str(len(datamodel_users)) + \
+            "' users for missing home directories.")
 
-        # Gather all compartments in use.
+        # Check to make sure a user has a home in each compartment in this
+        # realm.
         for realm in realms:
-            for u in andusers:
-                # This MUST be the user object from the datamodel or homes on
-                # new compartments will not be created.
-                for c in u.compartments:
-                    has_home_here = False
-                    for h in u.homes:
-                        if h.realm.base_name == realm.base_name:
-                            if h.compartment.short_name == c.short_name:
-                                has_home_here = True
-                    if not has_home_here:
-                        LOG.debug("User `" + u.short_name + \
+            for compartment in realm.compartments:
+                # Use the datamodel for the most complete list.
+                for datamodel_user in datamodel_users:
+
+                    # Assume the user doesn't have a home here until we find it
+                    # in the datamodel.
+                    user_should_have_home_here = False
+
+                    # Assume the user doesn't have a home here until we find it
+                    # on the disk.
+                    user_has_home_here = False
+
+                    # Find the cooresponding disk user for this datamodel user.
+                    disk_user = next((disk_user for disk_user in disk_users if \
+                        disk_user.short_name == datamodel_user.short_name), None)
+
+                    # Now check the datamodel to see if the user should have a
+                    # home here.
+                    for datamodel_compartment in datamodel_user.compartments:
+                        if datamodel_compartment.short_name == compartment.short_name:
+                            user_should_have_home_here = True
+
+                    # Now check the disk to see if the user actually has a home here.
+                    if disk_user:
+                        for disk_home in disk_user.homes:
+                            if disk_home.realm.base_name == realm.base_name:
+                                if disk_home.compartment.short_name == compartment.short_name:
+                                    user_has_home_here = True
+
+                    if not user_has_home_here and user_should_have_home_here:
+                        LOG.debug("User `" + datamodel_user.short_name + \
                             "' is missing a home on `" + realm.base_name + \
-                            "' in compartment `" + c.short_name + "'.")
-                        users.append((u,realm,c))
-        
+                            "' in compartment `" + compartment.short_name + "'.")
+                        users.append((datamodel_user,realm,compartment))
+
         # Debug
-        #self.dump_user_info(users)
+        #ReportHelper(self.config).dump_user_info(users)
+
         return users
 
     def users_in_this_and_that(self, this, that):
-        """
-        Determine the users in this list and that list. Returns a list
-        of objects pointing to this objects.
-        """
         users = []
         that_hash = {}
         for u in that:
@@ -249,10 +223,6 @@ class UsersHelper():
         return users
 
     def users_in_this_not_that(self, this, that):
-        """
-        Determine the users in this list, but not that list. Returns
-        a list of objects pointing to this objects.
-        """
         users = []
         that_hash = {}
         for u in that:

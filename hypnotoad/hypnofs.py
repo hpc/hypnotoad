@@ -90,10 +90,10 @@ class hypnofs(object):
     def symlink(self, src, dest, timeout=10, fail_cb=None, fail_obj=None):
         """A fault tolerant version of os.symlink()"""
 
-        LOG.debug("Creating a symlink from '" + src + "' to '" + dest + "'.")
+        #LOG.debug("Creating a symlink from '" + src + "' to '" + dest + "'.")
 
         result, failed = self.callback_wrap( \
-            ['ln', '-s', src, dest], timeout, fail_cb, fail_obj)
+            ['ln', '-s', '-n', '-f', src, dest], timeout, fail_cb, fail_obj)
 
         return result, failed
 

@@ -30,16 +30,16 @@ class FileSystemHelper():
         # Cache the compartment matchers for volumes and realms.
         for c, opts in self.compartment_options.iteritems():
 
-            if opts['vol_regex']:
+            if 'vol_regex' in opts:
                 self.compartment_options[c]['volume_matcher'] = re.compile(opts['vol_regex'])
                 LOG.debug("Compartment `" + str(c) + \
-                    "' using volume regex `" + opts['vol_regex'] +
+                    "' using volume regex `" + opts['vol_regex'] + \
                     "' with symlink prefix `" + str(opts['symlink_prefix']) + "'.")
 
-            if opts['realm_regex']:
+            if 'realm_regex' in opts:
                 self.compartment_options[c]['realm_matcher'] = re.compile(opts['realm_regex'])
                 LOG.debug("Compartment `" + str(c) + \
-                    "' using realm regex `" + opts['realm_regex'])
+                    "' using realm regex `" + opts['realm_regex'] + \
                     "' with symlink prefix `" + str(opts['symlink_prefix']) + "'.")
 
     def gather_users_from_realms(self, realms):
@@ -117,7 +117,7 @@ class FileSystemHelper():
                 # Check to see if every volume in this realm should be in
                 # the new compartment. Realm matchers override volume
                 # matchers.
-                if self.compartment_options[compartment_name]['realm_matcher']:
+                if 'realm_matcher' in self.compartment_options[compartment_name]:
                     realm_matcher = self.compartment_options[compartment_name]['realm_matcher']
                     if realm_matcher.match(realm.base_name):
                         for volume_name in volume_names:
@@ -131,7 +131,7 @@ class FileSystemHelper():
 
                 # Check to see if only specific volumes in this realm should
                 # be in the new compartment.
-                elif self.compartment_options[compartment_name]['volume_matcher']:
+                elif 'volume_matcher' in self.compartment_options[compartment_name]:
                     vol_matcher = self.compartment_options[compartment_name]['volume_matcher']
 
                     for volume_name in volume_names:
