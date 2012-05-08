@@ -36,7 +36,7 @@ oldldap_use_groups:            no  ; collect group data (expensive)
 
 ; This is a nested structure of compartments that contain OUs which contain
 ; users of that compartment.
-oldldap_user_compartment_ous:  {"asc": [ "nfs.lanl.gov" ] }
+oldldap_user_compartment_ous:  {"red": [ "nfs.lanl.gov" ] }
 
 ; ========================================================================
 ; Options for action (output) plugins.
@@ -73,7 +73,7 @@ panlinks_skip_realms:          all-realms-active ; comma seperated list of realm
 ; "realm_regex" is a regular expression to match a compartment to an entire
 ; realm. Realm matchers override volume matchers.
 panlinks_compartment_options:  {
-                               "asc":
+                               "red":
                                  {
                                    "vol_regex": "/(^vol\\d{1,}$)/ix",
                                  }
