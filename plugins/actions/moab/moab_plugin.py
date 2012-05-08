@@ -1,13 +1,17 @@
 #
-# A moab action plugin for hypnotoad.
+# A moab idcfg action plugin for hypnotoad.
 #
 
-from hypnotoad import plugin
 import logging
-import pprint
+import os
+import sys
+
+sys.path.append(os.path.abspath('plugins/actions/moab'))
+
+from hypnotoad import plugin
+from moab_credential import *
 
 LOG = logging.getLogger('root')
-PP = pprint.PrettyPrinter(indent=4)
 
 class moab_plugin(plugin.action_plugin):
     def setup(self, config, model_version):
@@ -31,6 +35,8 @@ class moab_plugin(plugin.action_plugin):
     def append_model(self, models):
         """Handled a model appended to this output."""
 
+        moab_credentials = []
+
         if self.plugin_enabled:
             LOG.debug("Got to moab plugin append_model.")
 
@@ -39,17 +45,12 @@ class moab_plugin(plugin.action_plugin):
                     if 'group_entry' in m.keys():
                         group = m['group_entry']
 
-                        name = group['short_name_string'].strip()
-                        fstarget = group['priority_fairshare_float'].strip()
+                        group_cred = MoabCredential("group", group['short_name_string'])
+                        group_cred.add_attribute("fstarget", group['priority_fairshare_float'])
 
-                        if fstarget:
-                            print 'GROUPCFG[%s] FSTARGET=%s' % (name, fstarget)
-                        else:
-                            LOG.debug('Group "' + name + '" did not have a fairshare value.')
-                    if 'user_entry' in m.keys():
-                        user = m['user_entry']
+                        moab_credentials.append(group_cred)
 
-                        name = user['short_name_string'].strip()
-                        LOG.debug("Found user in model with name: " + name)
+        for cred in moab_credentials:
+            LOG.debug("Moab credential idcfg: `" + str(cred) + "'.")
 
 # EOF
