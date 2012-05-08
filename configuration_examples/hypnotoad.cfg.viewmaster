@@ -57,6 +57,10 @@ slurm_plugin_enabled:          no
 ; Options for the passwd file generator plugin.
 passwd_file_plugin_enabled:    no
 
+; Options for the compartment map generator plugin.
+compartment_plugin_enabled:    yes
+compartment_output_location:   /usr/projects/systems/compartment.map
+
 ; Options for the Panasas links plugin.
 panlinks_plugin_enabled:       yes
 panlinks_mount_point:          /panfs ; the root mount point for PanFS
