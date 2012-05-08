@@ -1,6 +1,6 @@
 ; ========================================================================
 ;
-;    A sample hypnotoad configuration file for the turquoise network.
+;              A sample hypnotoad configuration file.
 ;
 ; ========================================================================
 
@@ -37,9 +37,15 @@ oldldap_use_groups:            no  ; collect group data (expensive)
 ; This is a nested structure of compartments that contain OUs which contain
 ; users of that compartment.
 oldldap_user_compartment_ous:  {
-                                 "ic":
+                                 "turquoise":
                                  [
-                                   "scratch"
+                                   "scratch",
+                                   "moonlight-ic",
+                                   "moonlight-support"
+                                 ],
+                                 "yellow":
+                                 [
+                                   "moonlight-asc"
                                  ]
                                }
 
@@ -58,6 +64,10 @@ slurm_plugin_enabled:          no
 ; Options for the passwd file generator plugin.
 passwd_file_plugin_enabled:    no
 
+; Options for the compartment map generator plugin.
+compartment_plugin_enabled:    yes
+compartment_output_location:   /usr/projects/systems/compartment.map
+
 ; Options for the Panasas links plugin.
 panlinks_plugin_enabled:       yes
 panlinks_mount_point:          /panfs ; the root mount point for PanFS
@@ -75,14 +85,13 @@ panlinks_skip_realms:          all-realms-active ; comma seperated list of realm
 ; This is a list of options for each compartment. "vol_regex" is a regular
 ; expression to match on a volume list in each realm. "symlink_prefix" is
 ; the prefix to be used for symlink creation to each volume's user directories.
-; "realm_regex" is a regular expression to match a compartment to an entire
-; realm. Realm matchers override volume matchers.
 panlinks_compartment_options:  {
-                                 "ic":
+                                 "turquoise":
                                  {
                                    "vol_regex": "vol\\d{1,}(?ix)",
+                                   "symlink_prefix": ""
                                  },
-                                 "asc":
+                                 "yellow":
                                  {
                                    "vol_regex": "avol\\d{1,}(?ix)",
                                    "symlink_prefix": "a"
