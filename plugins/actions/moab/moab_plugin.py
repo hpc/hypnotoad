@@ -50,6 +50,14 @@ class moab_plugin(plugin.action_plugin):
 
                         moab_credentials.append(group_cred)
 
+                    if 'user_entry' in m.keys():
+                        user = m['user_entry']
+
+                        user_cred = MoabCredential("user", user['short_name_string'])
+                        user_cred.add_attribute("fstarget", user['priority_fairshare_float'])
+
+                        moab_credentials.append(user_cred)
+
         for cred in moab_credentials:
             LOG.debug("Moab credential idcfg: `" + str(cred) + "'.")
 
