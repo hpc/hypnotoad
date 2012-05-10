@@ -34,11 +34,10 @@ class moab_plugin(plugin.action_plugin):
 
     def append_model(self, models):
         """Handled a model appended to this output."""
-
-        moab_credentials = []
-
         if self.plugin_enabled:
             LOG.debug("Got to moab plugin append_model.")
+
+            moab_credentials = []
 
             for plug_model in models:
                 for m in plug_model:
@@ -58,7 +57,7 @@ class moab_plugin(plugin.action_plugin):
 
                         moab_credentials.append(user_cred)
 
-        for cred in moab_credentials:
-            LOG.debug("Moab credential idcfg: `" + str(cred) + "'.")
+            for cred in moab_credentials:
+                LOG.debug("Moab credential idcfg: `" + str(cred) + "'.")
 
 # EOF
