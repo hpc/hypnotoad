@@ -22,7 +22,7 @@
 # Custom path so we have a sane version of python and git. Hypnotoad requires
 # python >= 2.7 to properly function. A working version of git is highly
 # recommended for proper logging.
-PATH=$PATH:/opt/python27/bin:/opt/git17/bin
+PATH=/opt/python27/bin:/opt/git17/bin:$PATH
 
 # Should debug level notification emails be sent. This will send detailed
 # logging information to DEBUG_EMAIL each time hypnotoad is executed.
@@ -33,6 +33,9 @@ DEBUG_EMAIL="jonb@lanl.gov"
 
 # The base directory where the root of the hypnotoad source code is located.
 HYPNOTOAD_HOME=/opt/hypnotoad
+
+# Should we format the debug output.
+FORMAT_JSON=1
 
 ##############################################################################
 # Nothing below this line should be modified without serious consideration.
@@ -48,8 +51,22 @@ popd
 
 # Send debug logging information to DEBUG_EMAIL if requested.
 if [ "$DEBUG_MODE" != "" ]; then
-  echo $OUTPUT | mail -s \
-    "[hypnotoad] Debug mode log output" $DEBUG_EMAIL
+    if [ "$FORMAT_JSON" != "" ]; then
+        FORMATTED_OUTPUT="["
+        while read -r line; do
+            if [ "$FORMATTED_OUTPUT" != "" ]; then
+                FORMATTED_OUTPUT="$FORMATTED_OUTPUT$line,"
+            fi
+        done <<< "$OUTPUT"
+        FORMATTED_OUTPUT="${FORMATTED_OUTPUT%,}"
+        FORMATTED_OUTPUT="$FORMATTED_OUTPUT]"
+       
+        echo $FORMATTED_OUTPUT | python -mjson.tool | mail -s \
+            "[hypnotoad debug] Panasas symlinks generation log" $DEBUG_EMAIL
+    else
+        echo $OUTPUT | mail -s \
+            "[hypnotoad debug] Panasas symlinks generation log" $DEBUG_EMAIL
+    fi
 fi
 
 ##############################################################################
