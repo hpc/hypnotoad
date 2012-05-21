@@ -40,12 +40,11 @@ oldldap_user_compartment_ous:  {
                                  "turquoise":
                                  [
                                    "scratch",
-                                   "moonlight-ic",
-                                   "moonlight-support"
+                                   "moonlight-turquoise"
                                  ],
                                  "yellow":
                                  [
-                                   "moonlight-asc"
+                                   "moonlight-yellow"
                                  ]
                                }
 
@@ -56,6 +55,7 @@ oldldap_user_compartment_ous:  {
 
 ; Options for the Moab scheduler plugin.
 moab_plugin_enabled:           no
+moab_idcfg_output:             /tmp/hypnotoad_icfg_test.txt
 moab_case_sensitive:           no   ; for compatibility
 
 ; Options for the Slurm scheduler plugin.
