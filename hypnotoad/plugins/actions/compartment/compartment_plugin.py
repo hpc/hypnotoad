@@ -2,10 +2,11 @@
 # A plugin to generate a user to compartment mapping.
 #
 
-from hypnotoad import plugin
 import datetime
 import logging
 import pprint
+
+from hypnotoad.core import plugin
 
 LOG = logging.getLogger('root')
 PP = pprint.PrettyPrinter(indent=4)

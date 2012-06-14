@@ -8,7 +8,7 @@ import sys
 
 sys.path.append(os.path.abspath('plugins/actions/panlinks'))
 
-from hypnotoad import plugin
+from hypnotoad.core import plugin
 from setup_helper import *
 from failure_helper import *
 from filesystem_helper import *

@@ -7,13 +7,15 @@ import getopt
 import ConfigParser
 
 from subprocess import Popen, PIPE
-from hypnotoad import hypnolog, plugin
+from hypnotoad.core import hypnolog, plugin
 
 PLUGIN_MODEL_VERSION = 1
 
+LOG = logging.getLogger('root')
+
 class PluginLoader(object):
 
-    def load_hypnotoad_plugin(path, cls):
+    def load_hypnotoad_plugin(self, path, cls):
         """
         Find the first subclass of cls with name in py files located below path
         (does look in sub directories)
@@ -25,7 +27,6 @@ class PluginLoader(object):
         @rtype: arr
         @return: all plugins with subclass of cls
         """
-
         plugins = []
  
         def look_for_subclass(modulename):
@@ -52,25 +53,25 @@ class PluginLoader(object):
                     # don't care as it can't be a subclass of cls if it isn't a
                     # type
                     continue
- 
-        for root, dirs, files in os.walk(path):
-            for name in files:
+
+        for dirpath, dirnames, filenames in os.walk(path):
+            for name in filenames:
                 if name.endswith(".py") and not name.startswith("__"):
-                    path = os.path.join(root, name)
-                    modulename = path.rsplit('.', 1)[0].replace('/', '.')
+                    file_path = os.path.join(os.path.relpath(dirpath, path), name)
+                    modulename = "hypnotoad.plugins." + file_path.rsplit('.', 1)[0].replace('/', '.')
                     look_for_subclass(modulename)
 
         return plugins
 
-    def send_input_to_output(config):
+    def send_input_to_output(self, config):
         """
         Get the output of the input plugin and send it to the output plugin.
 
         @param config: the hypnotoad config
         @type config: ConfigParser
         """
-
-        plugin_path = config.get('Basic Options', 'plugins_dir')
+        load_path = os.path.realpath(os.path.dirname(__file__))
+        plugin_path = os.path.join(os.path.dirname(load_path), "plugins")
 
         loaded_datamodel_plugins = []
         loaded_action_plugins = []
@@ -78,9 +79,10 @@ class PluginLoader(object):
         datamodel_outputs = []
 
         try:
+            LOG.debug("Searching `" + str(plugin_path) + "' for plugins.")
 
             # first, lets find the plugins
-            def make_plugins(type): return load_hypnotoad_plugin(plugin_path, type)
+            def make_plugins(type): return self.load_hypnotoad_plugin(plugin_path, type)
             datamodel_plugins = make_plugins(plugin.data_model_plugin)
             action_plugins = make_plugins(plugin.action_plugin)
 

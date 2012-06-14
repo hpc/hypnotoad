@@ -2,9 +2,10 @@
 # A passwd file generation action plugin for hypnotoad.
 #
 
-from hypnotoad import plugin
 import logging
 import pprint
+
+from hypnotoad.core import plugin
 
 LOG = logging.getLogger('root')
 PP = pprint.PrettyPrinter(indent=4)

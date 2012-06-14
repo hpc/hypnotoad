@@ -10,7 +10,7 @@ import re
 
 sys.path.append(os.path.abspath('plugins/actions/panlinks'))
 
-from hypnotoad import hypnofs
+from hypnotoad.core import hypnofs
 from base_classes import *
 from report_helper import *
 

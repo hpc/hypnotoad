@@ -8,7 +8,7 @@ import sys
 
 sys.path.append(os.path.abspath('plugins/actions/moab'))
 
-from hypnotoad import plugin
+from hypnotoad.core import plugin
 from moab_credential import *
 
 LOG = logging.getLogger('root')

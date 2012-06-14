@@ -5,7 +5,7 @@
 import ldap
 import logging
 
-from hypnotoad import plugin
+from hypnotoad.core import plugin
 
 LOG = logging.getLogger('root')
 

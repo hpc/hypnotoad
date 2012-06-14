@@ -6,7 +6,10 @@ import ConfigParser
 
 from subprocess import Popen, PIPE
 
-import hypnolog, plugin
+from hypnotoad.core.hypnolog import setup_logger
+from hypnotoad.core.plugin_loader import PluginLoader
+
+LOG = setup_logger('root')
 
 def read_config(filename):
     config = ConfigParser.RawConfigParser()
@@ -23,12 +26,16 @@ Options:
   -c FILE, --config=FILE  use the FILE specified for configuration settings
     """
 
-def version():
+def log_version():
     LOG.critical("git:" + os.popen("git rev-parse HEAD").read().strip())
 
 def execute_from_command_line():
-    version()
+    LOG.info("Execution started.")
+    log_version()
+    parse_command_line_options()
+    LOG.info("Execution finished.")
 
+def parse_command_line_options():
     try:
         opts, args = getopt.getopt(sys.argv[1:], "hc:", ["help", "config="])
     except getopt.GetoptError, err:
@@ -50,14 +57,9 @@ def execute_from_command_line():
 
     # Use a default location
     if config is None:
-        config = read_config("hypnotoad.cfg")
+        config = read_config("/etc/hypnotoad.cfg")
 
-    send_input_to_output(config)
-
-LOG = hypnolog.setup_logger('root')
-if __name__ == "__main__":
-    LOG.info("Execution started.")
-    main()
-    LOG.info("Execution finished.")
+    plugin_loader = PluginLoader()
+    plugin_loader.send_input_to_output(config)
 
 # EOF

@@ -10,7 +10,6 @@
 [Basic Options]
 state_dir:                     /tmp/hypnotoad
 lock_file_name:                /tmp/hypnotoad/lock
-plugins_dir:                   plugins
 
 ; ========================================================================
 ; Options for data model (input) plugins.
