@@ -1,2 +1,15 @@
+# Hypnotoad specific
 /hypnotoad.cfg
+
+# Python specific
 *.pyc
+/dist
+/MANIFEST
+/build
+ 
+# Generic files to ignore
+*~
+*.lock
+*.DS_Store
+*.swp
+*.out
