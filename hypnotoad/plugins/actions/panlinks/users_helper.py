@@ -5,8 +5,12 @@
 import sys
 import os
 import logging
-import json
 import re
+
+try:
+    import json
+except ImportError, e:
+    import simplejson as json
 
 sys.path.append(os.path.abspath('plugins/actions/panlinks'))
 

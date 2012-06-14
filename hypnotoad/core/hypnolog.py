@@ -4,10 +4,14 @@
 
 import logging
 import logging.handlers
-import json
 import re
 
 from datetime import datetime
+
+try:
+    import json
+except ImportError, e:
+    import simplejson as json
 
 class JsonFormatter(logging.Formatter):
     """A custom formatter to format logging records as json objects"""

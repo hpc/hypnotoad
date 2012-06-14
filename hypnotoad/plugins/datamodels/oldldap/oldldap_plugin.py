@@ -5,7 +5,11 @@
 
 import ldap
 import logging
-import json
+
+try:
+    import json
+except ImportError, e:
+    import simplejson as json
 
 from hypnotoad.core import plugin
 
