@@ -1,1 +1,2 @@
-No license granted.
+Copyright 2012 Los Alamos National Laboratory. No license granted. No ownership transfer.
+LA-CC does NOT exist for this software.
