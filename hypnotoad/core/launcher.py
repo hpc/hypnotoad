@@ -1,5 +1,3 @@
-#!/opt/python27/bin/python
-
 import logging
 import sys
 import os
@@ -7,7 +5,8 @@ import getopt
 import ConfigParser
 
 from subprocess import Popen, PIPE
-from hypnotoad import hypnolog, plugin
+
+import hypnolog, plugin
 
 def read_config(filename):
     config = ConfigParser.RawConfigParser()
@@ -27,7 +26,7 @@ Options:
 def version():
     LOG.critical("git:" + os.popen("git rev-parse HEAD").read().strip())
 
-def main():
+def execute_from_command_line():
     version()
 
     try:

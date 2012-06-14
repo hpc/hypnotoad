@@ -4,4 +4,4 @@ all:
 
 clean:
 	-find ./ -name "*.pyc" -exec rm {} \;
-	-rm -rf ./dist ./build
+	-rm -rf ./dist ./build ./hypnotoad.egg-info

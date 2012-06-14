@@ -6,6 +6,7 @@
 /dist
 /MANIFEST
 /build
+/hypnotoad.egg-info
  
 # Generic files to ignore
 *~
