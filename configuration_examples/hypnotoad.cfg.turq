@@ -1,6 +1,6 @@
 ; ========================================================================
 ;
-;              A sample hypnotoad configuration file.
+;             Hypnotoad configuration for turq and YeTI.
 ;
 ; ========================================================================
 
@@ -36,14 +36,18 @@ oldldap_use_groups:            no  ; collect group data (expensive)
 ; This is a nested structure of compartments that contain OUs which contain
 ; users of that compartment.
 oldldap_user_compartment_ous:  {
+                                 "yellow":
+                                 [
+                                   "moonlight-yellow"
+                                 ],
                                  "turquoise":
                                  [
                                    "scratch",
                                    "moonlight-turquoise"
                                  ],
-                                 "yellow":
+                                 "legacy":
                                  [
-                                   "moonlight-yellow"
+                                   "moonlight-turquoise"
                                  ]
                                }
 
@@ -71,7 +75,7 @@ compartment_output_location:   /usr/projects/systems/compartment.map
 panlinks_plugin_enabled:       yes
 panlinks_mount_point:          /panfs ; the root mount point for PanFS
 panlinks_skip_bad_realms:      no     ; skip realms that time out
-panlinks_max_diff_count:       10     ; max diff from the previous run
+panlinks_max_diff_count:       20     ; max diff from the previous run
 panlinks_new_dir_perms:        0700   ; permissions for new directories
 panlinks_max_skip_bad_vols:    3      ; max number of bad volumes to skip
 panlinks_max_skip_bad_realms:  1      ; max number of bad realms to skip
@@ -85,15 +89,20 @@ panlinks_skip_realms:          all-realms-active ; comma seperated list of realm
 ; expression to match on a volume list in each realm. "symlink_prefix" is
 ; the prefix to be used for symlink creation to each volume's user directories.
 panlinks_compartment_options:  {
-                                 "turquoise":
-                                 {
-                                   "vol_regex": "vol\\d{1,}(?ix)",
-                                   "symlink_prefix": ""
-                                 },
                                  "yellow":
                                  {
                                    "vol_regex": "avol\\d{1,}(?ix)",
                                    "symlink_prefix": "a"
+                                 },
+                                 "turquoise":
+                                 {
+                                   "vol_regex": "vol\\d{1,}(?ix)",
+                                   "symlink_prefix": "b"
+                                 },
+                                 "legacy":
+                                 {
+                                   "vol_regex": "vol\\d{1,}(?ix)",
+                                   "symlink_prefix": ""
                                  }
                                }
 
