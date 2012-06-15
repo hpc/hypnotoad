@@ -15,6 +15,9 @@ LOG = logging.getLogger('root')
 
 class hypnofs(object):
 
+    def __init__(self):
+        self.dry_run_mode = True
+
     def timeout_command(self, command, timeout=10):
         """
         Call a shell command and either return its output or kill it. Continue
@@ -58,22 +61,26 @@ class hypnofs(object):
     def makedirs(self, path, timeout=10, fail_cb=None, fail_obj=None):
         """A fault tolerant version of os.makedirs()"""
 
-        #LOG.debug("Creating directory with path of '" + path + "'.")
+        LOG.debug("Creating directory with path of '" + path + "'.")
 
-        result, failed = self.callback_wrap( \
-            ['mkdir', '-p', path], timeout, fail_cb, fail_obj)
-
-        return result, failed
+        if not self.dry_run_mode:
+            result, failed = self.callback_wrap( \
+                ['mkdir', '-p', path], timeout, fail_cb, fail_obj)
+            return result, failed
+        else:
+            return (None,False)
 
     def chmod(self, path, perms, timeout=10, fail_cb=None, fail_obj=None):
         """A fault tolerant version of os.chmod()"""
 
         LOG.debug("Changing permissions of '" + path + "' to '" + perms + "'.")
 
-        result, failed = self.callback_wrap( \
-            ['chmod', perms, path], timeout, fail_cb, fail_obj)
-
-        return result, failed
+        if not self.dry_run_mode:
+            result, failed = self.callback_wrap( \
+                ['chmod', perms, path], timeout, fail_cb, fail_obj)
+            return result, failed
+        else:
+            return (None,False)
 
     def chown(self, path, owner='-1', group='-1', timeout=10, \
         fail_cb=None, fail_obj=None):
@@ -82,20 +89,24 @@ class hypnofs(object):
         LOG.debug("Changing ownership of '" + \
             path + "' to '" + owner + ":" + group + "'.")
 
-        result, failed = self.callback_wrap( \
-            ['chown', owner + ':' + group, path], timeout, fail_cb, fail_obj)
-
-        return result, failed
+        if not self.dry_run_mode:
+            result, failed = self.callback_wrap( \
+                ['chown', owner + ':' + group, path], timeout, fail_cb, fail_obj)
+            return result, failed
+        else:
+            return (None,False)
 
     def symlink(self, src, dest, timeout=10, fail_cb=None, fail_obj=None):
         """A fault tolerant version of os.symlink()"""
 
-        #LOG.debug("Creating a symlink from '" + src + "' to '" + dest + "'.")
+        LOG.debug("Creating a symlink from '" + src + "' to '" + dest + "'.")
 
-        result, failed = self.callback_wrap( \
-            ['ln', '-s', '-n', '-f', src, dest], timeout, fail_cb, fail_obj)
-
-        return result, failed
+        if not self.dry_run_mode:
+            result, failed = self.callback_wrap( \
+                ['ln', '-s', '-n', '-f', src, dest], timeout, fail_cb, fail_obj)
+            return result, failed
+        else:
+            return (None,False)
 
     def isdir(self, path, timeout=10, fail_cb=None, fail_obj=None):
         """A fault tolerant version of os.path.isdir()"""
