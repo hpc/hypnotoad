@@ -196,20 +196,34 @@ class UsersHelper():
                     # home here.
                     for datamodel_compartment in datamodel_user.compartments:
                         if datamodel_compartment.short_name == compartment.short_name:
+
+                            LOG.debug("User `" + datamodel_user.short_name + \
+                                "' SHOULD have a home on `" + realm.base_name + \
+                                "' in compartment `" + compartment.short_name + "'.")
+
                             user_should_have_home_here = True
 
                     # Now check the disk to see if the user actually has a home here.
                     if disk_user:
+                        #LOG.debug("User `" + datamodel_user.short_name + \
+                        #    "' has homes on disk `" + str(disk_user.homes) + "'.")
+
                         for disk_home in disk_user.homes:
                             if disk_home.realm.base_name == realm.base_name:
                                 if disk_home.compartment.short_name == compartment.short_name:
+
+                                    LOG.debug("User `" + datamodel_user.short_name + \
+                                        "' DOES have a home on `" + realm.base_name + \
+                                        "' in compartment `" + compartment.short_name + "'.")
+
                                     user_has_home_here = True
 
-                    if not user_has_home_here and user_should_have_home_here:
-                        LOG.debug("User `" + datamodel_user.short_name + \
-                            "' is missing a home on `" + realm.base_name + \
-                            "' in compartment `" + compartment.short_name + "'.")
-                        users.append((datamodel_user,realm,compartment))
+                    if not user_has_home_here:
+                        if user_should_have_home_here:
+                            LOG.debug("User `" + datamodel_user.short_name + \
+                                "' is MISSING a home on `" + realm.base_name + \
+                                "' in compartment `" + compartment.short_name + "'.")
+                            users.append((datamodel_user,realm,compartment))
 
         # Debug
         #ReportHelper(self.config).dump_user_info(users)
