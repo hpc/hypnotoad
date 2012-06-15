@@ -6,8 +6,8 @@
 # This script is versioned in git. Please do not make significant changes
 # to this without ensuring that the changes are properly pushed upstream.
 #
-#   Depending on how hypnotoad is configured (see HYPNOTOAD_HOME/hypnotoad.cfg
-#   for detailed configuration information), this script may perform the
+#   Depending on how hypnotoad is configured (see /etc/hypnotoad.cfg for
+#   detailed configuration information), this script may perform the
 #   following tasks:
 #
 #     * Panasas symlinks generation.
@@ -29,10 +29,7 @@ PATH=/opt/python27/bin:/opt/git17/bin:$PATH
 DEBUG_MODE=1
 
 # The email to send detailed debug messages to.
-DEBUG_EMAIL="jonb@lanl.gov"
-
-# The base directory where the root of the hypnotoad source code is located.
-HYPNOTOAD_HOME=/opt/hypnotoad
+DEBUG_EMAIL="jonb@lanl.gov,nfs@lanl.gov"
 
 # Should we format the debug output.
 FORMAT_JSON=1
@@ -42,12 +39,10 @@ FORMAT_JSON=1
 ##############################################################################
 
 # The location of the main starting point.
-HYPNOTOAD_PY=$HYPNOTOAD_HOME/hypnotoad.py
+HYPNOTOAD_BIN=/opt/python27/bin/hypnotoad
 
 # Run in a subshell and collect the output.
-pushd $HYPNOTOAD_HOME
-OUTPUT=$($HYPNOTOAD_PY 2>&1)
-popd
+OUTPUT=$($HYPNOTOAD_BIN 2>&1)
 
 # Send debug logging information to DEBUG_EMAIL if requested.
 if [ "$DEBUG_MODE" != "" ]; then
