@@ -57,8 +57,9 @@ class FileSystemHelper():
         for r in realms:
             for c in r.compartments:
                 for v in c.volumes:
-                    for u in v.users:
-                        raw_users.append(u)
+                    if v:
+                        for u in v.users:
+                            raw_users.append(u)
 
         for u in raw_users:
             if u.short_name in user_dict:
@@ -168,6 +169,7 @@ class FileSystemHelper():
             realm.failures.append( \
                 ScratchFailure("Failed to list volume `" + \
                 volume.absolute_path + "'."))
+            return
         for user_name in user_names:
             user = self.gather_user_info(user_name, realm, compartment, volume)
             volume.users.append(user)
