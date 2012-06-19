@@ -23,21 +23,54 @@ Usage: hypnotoad [-hc]
 
 Options:
   -h, --help              show this help message and exit
+  -v, --version           print the version and exit
   -c FILE, --config=FILE  use the FILE specified for configuration settings
     """
 
+def which_program(program):
+    """
+    Determine what executable will be launched by searching environment PATH.
+    """
+    def is_exe(fpath):
+        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+    fpath, fname = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return program
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return exe_file
+    return None
+
 def log_version():
-    LOG.critical("git:" + os.popen("git rev-parse HEAD").read().strip())
+    """
+    Determine if this is a git repo or an installed package and print out
+    the version number.
+    """
+    git_binary = which_program("git")
+    git_child = Popen([git_binary, "rev-parse", "HEAD"], \
+        stdout=PIPE, stderr=PIPE)
+    git_return = git_child.wait()
+
+    if git_return == 0:
+        (git_output, _) = git_child.communicate()
+        LOG.critical("hypnotoad-version-git:" + str(git_output).strip())
+    else:
+        import pkg_resources  # part of setuptools
+        version = pkg_resources.require("hypnotoad")[0].version
+        LOG.critical("hypnotoad-version-setuptools:" + str(version))
 
 def execute_from_command_line():
     LOG.info("Execution started.")
-    log_version()
     parse_command_line_options()
     LOG.info("Execution finished.")
 
 def parse_command_line_options():
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hc:", ["help", "config="])
+        opts, args = getopt.getopt(sys.argv[1:], "hc:v", ["help", "config=", "version"])
     except getopt.GetoptError, err:
         print str(err)
         usage()
@@ -50,10 +83,16 @@ def parse_command_line_options():
             sys.exit()
         elif o in ("-c", "--config"):
             config = read_config(a)
+        elif o in ("-v", "--version"):
+            log_version()
+            sys.exit()
         else:
             usage()
             assert False, "unhandled option"
             sys.exit(2)
+
+    # Make sure the version is always printed to the logs.
+    log_version()
 
     # Use a default location
     if config is None:
