@@ -80,7 +80,13 @@ class SetupHelper():
             model_diff_count = len(list(set(old_userlist) - set(new_userlist)))
 
             if model_diff_count > self.max_diff_count:
-                LOG.error("Model too different with " + str(model_diff_count) + " changes.")
+                LOG.error("Too many objects in the model (ldap) have changed." + \
+                    "Since the number of differences `" + str(model_diff_count) + \
+                    "' is greater than the configuration limit of `" + \
+                    str(self.max_diff_count) + "', we'll exit now. " +
+                    "If this is intended, please change the model difference limit " + \
+                    "in the configuration or remove the panlinks model cache " +
+                    " at `" + str(cache_file_name) + "' so it can be automatically recreated.")
                 raise UserWarning
             else:
                 # Overwrite the old cache.
