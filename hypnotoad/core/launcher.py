@@ -19,7 +19,7 @@ def read_config(filename):
 
 def usage():
     print """
-Usage: hypnotoad [-hc]
+Usage: hypnotoad [-hvc]
 
 Options:
   -h, --help              show this help message and exit
