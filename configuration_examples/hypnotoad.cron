@@ -32,7 +32,7 @@ DEBUG_MODE=1
 DEBUG_EMAIL="jonb@lanl.gov,nfs@lanl.gov"
 
 # Should we format the debug output.
-FORMAT_JSON=1
+#FORMAT_JSON=1
 
 ##############################################################################
 # Nothing below this line should be modified without serious consideration.
