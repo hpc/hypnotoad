@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup (
     name               = 'hypnotoad',
-    version            = '0.1.0',
+    version            = '0.1.1',
     author             = 'Jon Bringhurst',
     author_email       = 'jonb@lanl.gov',
     url                = 'https://www.git.lanl.gov/rm/hypnotoad',
