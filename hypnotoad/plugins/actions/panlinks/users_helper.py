@@ -54,6 +54,13 @@ class UsersHelper():
         volume set has the least number of users.
         """
         volume_set = None
+
+        if realm.has_failed:
+            LOG.error("Detected failures on realm `" + realm.base_name + \
+                "'. Skipping creation of new user directory for `" + \
+                user.short_name + "'.")
+            return
+
         for c in realm.compartments:
             if c.short_name == compartment.short_name:
                 volume_set = c.volumes

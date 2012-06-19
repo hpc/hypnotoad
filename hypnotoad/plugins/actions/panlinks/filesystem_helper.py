@@ -57,8 +57,9 @@ class FileSystemHelper():
         for r in realms:
             for c in r.compartments:
                 for v in c.volumes:
-                    for u in v.users:
-                        raw_users.append(u)
+                    if v:
+                        for u in v.users:
+                            raw_users.append(u)
 
         for u in raw_users:
             if u.short_name in user_dict:
@@ -103,7 +104,7 @@ class FileSystemHelper():
         Create compartment objects from realm information. Compartment objects
         specify which volumes are included in a compartment.
         """
-        LOG.info("Gathering compartments for realm `" + realm.base_name + "'.")
+        LOG.debug("Gathering compartments for realm `" + realm.base_name + "'.")
         compartments = []
 
         volume_names, failed_to_list = FS.listdir(realm.absolute_path)
@@ -168,6 +169,7 @@ class FileSystemHelper():
             realm.failures.append( \
                 ScratchFailure("Failed to list volume `" + \
                 volume.absolute_path + "'."))
+            return
         for user_name in user_names:
             user = self.gather_user_info(user_name, realm, compartment, volume)
             volume.users.append(user)
