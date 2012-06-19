@@ -44,7 +44,7 @@ def create_timestamp(record):
     timestamp = datetime.fromtimestamp(record.created)
     return timestamp.strftime("%y-%m-%d %H:%M:%S,%f"),
 
-def setup_logger(name, enable_syslog=True, use_json=True):
+def setup_logger(name, enable_syslog=True, use_json=False):
     if use_json:
         supported_keys = [
             'asctime',
@@ -77,7 +77,7 @@ def setup_logger(name, enable_syslog=True, use_json=True):
     handler.setFormatter(formatter)
 
     logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.INFO)
     logger.addHandler(handler)
 
     if enable_syslog:
