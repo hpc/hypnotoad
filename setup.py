@@ -18,4 +18,7 @@ setup (
     packages           = find_packages(),
 )
 
+from pylint.lint import Run
+Run(['--errors-only', 'hypnotoad']) 
+
 # EOF
