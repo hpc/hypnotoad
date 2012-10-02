@@ -88,7 +88,7 @@ class FileSystemHelper():
         for user_name in user_names:
             user = ScratchUser(user_name)
 
-            home = ScratchHome(realm, user)
+            home = ScratchHome(realm, None, user)
             home.absolute_path = os.path.join( \
                 realm.absolute_path, user.short_name)
 

@@ -1,5 +1,5 @@
 #
-# Base classes for use in the lustredirs action.
+# Base classes for use in the lustredirs plugin.
 #
 
 class ScratchUser(object):
@@ -7,29 +7,32 @@ class ScratchUser(object):
         self.short_name = short_name
         self.uid = uid
         self.gid = gid
+        self.compartments = []
         self.homes = []
 
 class ScratchRealm(object):
     def __init__(self, base_name):
-        self.users = []
+        self.compartments = []
         self.failures = []
         self.base_name = base_name
         self.absolute_path = None
         self.containing_path = None
         self.has_failed = False
+        self.users = []
 
 class ScratchFailure(object):
     def __init__(self, message):
         self.message = message
 
 class ScratchHome(object):
-    def __init__(self, realm, user):
+    def __init__(self, realm, compartment, user):
         self.realm = realm
+        self.compartment = compartment
         self.user = user
         self.absolute_path = None
 
     def __key(self):
-        return (self.absolute_path)
+        return (self.absolute_path, self.compartment)
 
     def __eq__(x, y):
         return x.__key() == y.__key()
@@ -38,7 +41,27 @@ class ScratchHome(object):
         return hash(self.__key())
 
     def __repr__(self):
-        result = "ScratchHome: `" + self.absolute_path + "'."
+        result = "ScratchHome: `" + self.absolute_path + \
+            "' in compartment `" + \
+            self.compartment.short_name + "'."
+        return result
+
+class ScratchCompartment(object):
+    def __init__(self, short_name, regex=None):
+        self.regex = regex
+        self.short_name = short_name
+
+    def __key(self):
+        return (self.regex, self.short_name)
+
+    def __eq__(x, y):
+        return x.__key() == y.__key()
+
+    def __hash__(self):
+        return hash(self.__key())
+
+    def __repr__(self):
+        result = "ScratchCompartment: `" + self.short_name + "'."
         return result
 
 # EOF

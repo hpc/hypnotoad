@@ -5,7 +5,6 @@
 class FailureHelper:
 
     def __init__(self, config):
-        self.max_skip_bad_vols = config.getint('Action Options', 'lustredirs_max_skip_bad_vols')
         self.max_skip_bad_realms = config.getint('Action Options', 'lustredirs_max_skip_bad_realms')
         self.command_timeout = config.getint('Action Options', 'lustredirs_subprocess_timeout')
 
