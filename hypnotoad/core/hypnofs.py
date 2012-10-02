@@ -173,6 +173,9 @@ class hypnofs(object):
         cmd_output, failed = self.callback_wrap( \
             ['mountpoint', path], timeout, fail_cb, fail_obj)
 
+        if not cmd_output:
+            return False, failed
+
         if "is a mountpoint" in cmd_output[0]:
             return True, failed
         else:
