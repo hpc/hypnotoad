@@ -108,7 +108,7 @@ class SetupHelper():
                 if i != -1:
                     l = l[:i]
                     l = l.rstrip()
-                if l.find('type lustre') != -1:
+                if l.find('lustre') != -1:
                     m.append(l.split()[1])
             return set(m)
 
