@@ -160,7 +160,7 @@ class hypnofs(object):
         """A fault tolerant version of os.listdir()"""
 
         cmd_output, failed = self.callback_wrap( \
-            ['find', path, '-maxdepth', '1', '-printf', '%f\\n'], \
+            ['find', path, '-mindepth', '1', '-maxdepth', '1', '-printf', '%f\\n'], \
             timeout, fail_cb, fail_obj)
 
         if failed:
