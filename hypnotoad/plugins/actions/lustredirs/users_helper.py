@@ -36,11 +36,7 @@ class UsersHelper():
             disk_users, datamodel_users, realms)
 
         for u,r,c in users_missing_homes:
-            LOG.debug("Would create directory for `" + \
-                str((u.short_name,r.base_name,c.short_name)) + "'.")
-        #    LOG.debug("Creating new directory for user `" + \
-        #        str((u.short_name,r.base_name)) + "'.")
-        #    self.create_home(u, r)
+            self.create_home(u, r)
 
     def create_home(self, user, realm):
         """
@@ -53,10 +49,10 @@ class UsersHelper():
             return
 
         full_path = os.path.join(realm.absolute_path, user.short_name)
-        LOG.info("Creating a user home for `" + \
+        LOG.info("Creating a home for `" + \
             user.short_name + "' at `" + full_path + "'.")
 
-        #self.commit_home_to_disk(full_path, user)
+        self.commit_home_to_disk(full_path, user)
 
     def commit_home_to_disk(self, path, user):
 
