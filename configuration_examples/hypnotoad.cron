@@ -56,10 +56,10 @@ if [ "$DEBUG_MODE" != "" ]; then
         FORMATTED_OUTPUT="${FORMATTED_OUTPUT%,}"
         FORMATTED_OUTPUT="$FORMATTED_OUTPUT]"
        
-        echo $FORMATTED_OUTPUT | python -mjson.tool | mail -s \
+        echo "$FORMATTED_OUTPUT" | python -mjson.tool | mail -s \
             "[hypnotoad debug] Panasas symlinks generation log" $DEBUG_EMAIL
     else
-        echo $OUTPUT | mail -s \
+        echo "$OUTPUT" | mail -s \
             "[hypnotoad debug] Panasas symlinks generation log" $DEBUG_EMAIL
     fi
 fi
