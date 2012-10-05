@@ -61,6 +61,7 @@ class lustredirs_plugin(plugin.action_plugin):
 
             # Attempt to create home directories where none exist.
             # perform symlink creation.
+            users_helper = UsersHelper(self.config)
             users_helper.create_missing_homes(disk_users, datamodel_users, realms)
 
 # EOF

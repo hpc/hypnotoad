@@ -41,15 +41,21 @@ class ScratchHome(object):
         return hash(self.__key())
 
     def __repr__(self):
-        result = "ScratchHome: `" + self.absolute_path + \
-            "' in compartment `" + \
-            self.compartment.short_name + "'."
+        if self.compartment:
+            result = "ScratchHome: `" + self.absolute_path + \
+                "' in compartment `" + \
+                self.compartment.short_name + "'."
+        else:
+            result = "ScratchHome: `" + self.absolute_path + \
+                "' (not in a compartment)"
+
         return result
 
 class ScratchCompartment(object):
     def __init__(self, short_name, regex=None):
         self.regex = regex
         self.short_name = short_name
+        self.realms = []
 
     def __key(self):
         return (self.regex, self.short_name)

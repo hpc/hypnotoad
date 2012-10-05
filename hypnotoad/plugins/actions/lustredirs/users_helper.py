@@ -35,10 +35,12 @@ class UsersHelper():
         users_missing_homes = self.users_missing_homes( \
             disk_users, datamodel_users, realms)
 
-        for u,r in users_missing_homes:
-            LOG.debug("Creating new directory for user `" + \
-                str((u.short_name,r.base_name)) + "'.")
-            self.create_home(u, r)
+        for u,r,c in users_missing_homes:
+            LOG.debug("Would create directory for `" + \
+                str((u.short_name,r.base_name,c.short_name)) + "'.")
+        #    LOG.debug("Creating new directory for user `" + \
+        #        str((u.short_name,r.base_name)) + "'.")
+        #    self.create_home(u, r)
 
     def create_home(self, user, realm):
         """
@@ -54,7 +56,7 @@ class UsersHelper():
         LOG.info("Creating a user home for `" + \
             user.short_name + "' at `" + full_path + "'.")
 
-        self.commit_home_to_disk(full_path, user)
+        #self.commit_home_to_disk(full_path, user)
 
     def commit_home_to_disk(self, path, user):
 
@@ -91,38 +93,51 @@ class UsersHelper():
         # Check to make sure a user has a home in each compartment in this
         # realm.
         for realm in realms:
-            # Use the datamodel for the most complete list.
-            for datamodel_user in datamodel_users:
+            for compartment in realm.compartments:
 
-                # Assume all users should have a home on lustre.
-                user_should_have_home_here = True
+                # Use the datamodel for the most complete list.
+                for datamodel_user in datamodel_users:
 
-                # Assume the user doesn't have a home here until we find it
-                # on the disk.
-                user_has_home_here = False
+                    # Don't assume users should have a home on lustre.
+                    user_should_have_home_here = False
 
-                # Find the cooresponding disk user for this datamodel user.
-                disk_user = next((disk_user for disk_user in disk_users if \
-                    disk_user.short_name == datamodel_user.short_name), None)
+                    # Assume the user doesn't have a home here until we find it
+                    # on the disk.
+                    user_has_home_here = False
 
-                # Now check the disk to see if the user actually has a home here.
-                if disk_user:
-                    LOG.debug("User `" + datamodel_user.short_name + \
-                        "' has homes on disk `" + str(disk_user.homes) + "'.")
+                    # Find the cooresponding disk user for this datamodel user.
+                    disk_user = next((disk_user for disk_user in disk_users if \
+                        disk_user.short_name == datamodel_user.short_name), None)
 
-                    for disk_home in disk_user.homes:
-                        if disk_home.realm.base_name == realm.base_name:
+                    # Now check the datamodel to see if the user should have a
+                    # home here.
+                    for datamodel_compartment in datamodel_user.compartments:
+                        if datamodel_compartment.short_name == compartment.short_name:
 
                             LOG.debug("User `" + datamodel_user.short_name + \
-                                "' DOES have a home on `" + realm.base_name + "'.")
+                                "' SHOULD have a home on `" + realm.base_name + \
+                                "' in compartment `" + compartment.short_name + "'.")
 
-                            user_has_home_here = True
+                            user_should_have_home_here = True
 
-                if not user_has_home_here:
-                    if user_should_have_home_here:
-                        LOG.debug("User `" + datamodel_user.short_name + \
-                            "' is MISSING a home on `" + realm.base_name + "'.")
-                        users.append((datamodel_user,realm))
+                    # Now check the disk to see if the user actually has a home here.
+                    if disk_user:
+                        LOG.debug("User `" + str(datamodel_user.short_name) + \
+                            "' has homes on disk `" + str(disk_user.homes) + "'.")
+
+                        for disk_home in disk_user.homes:
+                            if disk_home.realm.base_name == realm.base_name:
+
+                                LOG.debug("User `" + str(datamodel_user.short_name) + \
+                                    "' DOES have a home on `" + str(realm.base_name) + "'.")
+
+                                user_has_home_here = True
+
+                    if not user_has_home_here:
+                        if user_should_have_home_here:
+                            LOG.debug("User `" + datamodel_user.short_name + \
+                                "' is MISSING a home on `" + realm.base_name + "'.")
+                            users.append((datamodel_user,realm,compartment))
 
         # Debug
         #ReportHelper(self.config).dump_user_info(users)

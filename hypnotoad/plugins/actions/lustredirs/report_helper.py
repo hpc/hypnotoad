@@ -41,12 +41,6 @@ class ReportHelper():
         users_missing_homes = self.users_helper.users_missing_homes( \
             disk_users, datamodel_users, realms)
 
-        LOG.info("Found `" + str(len(with_datamodel_no_disk)) + \
-            "' users with datamodel (ldap) entries, but no entries on disk.")
-        LOG.info("Found `" + str(len(users_missing_homes)) + \
-            "' users with datamodel (ldap) entries, but some entries on disk.")
-        LOG.info("Listing users with datamodel (ldap) entry, but some entries on disk: `" + \
-            str([u.short_name for (u,r,c) in users_missing_homes]) + "'.")
         LOG.info("Found `" + str(len(with_disk_no_datamodel)) + \
             "' objects on disk that have no datamodel (ldap) entry.")
         LOG.info("Listing objects on disk that have no datamodel (ldap) entry: `" + \
@@ -59,8 +53,12 @@ class ReportHelper():
         """
         for u in users:
             LOG.info("User: `" + u.short_name + "'")
+            LOG.info("\tHomes:")
             for h in u.homes:
-                LOG.info("\tHome : `" + h.realm.base_name + "'")
+                LOG.info("\t\t" + h.realm.base_name + "'")
+            LOG.info("\tCompartments:")
+            for c in u.compartments:
+                LOG.info("\t\t" + c.short_name + "'")
 
     def dump_realm_info(self, realms):
         """
