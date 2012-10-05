@@ -71,13 +71,13 @@ def setup_logger(name, enable_syslog=True, use_json=False):
 
         formatter = JsonFormatter(custom_format)
     else:
-        formatter = logging.Formatter(fmt='HYPNOLOG %(asctime)s - %(levelname)s - %(module)s - %(message)s\r\n')
+        formatter = logging.Formatter(fmt='HYPNOLOG %(asctime)s - %(levelname)s - %(module)s - %(message)s')
 
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
 
     logger = logging.getLogger(name)
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)
     logger.addHandler(handler)
 
     if enable_syslog:
