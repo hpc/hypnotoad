@@ -52,6 +52,23 @@ class ReportHelper():
         LOG.info("Listing objects on disk that have no datamodel (ldap) entry: `" + \
             str([u.short_name for u in with_disk_no_datamodel]))
 
+    def dump_user_volume_list(self, realms):
+        """
+        Dump a list of volumes and the users with homes in them. The output of
+        this should be suitable for splunk.
+        """
+        output = []
+        for r in realms:
+            realm = { str(r.base_name) : [] }
+            for c in r.compartments:
+                for v in c.volumes:
+                    volume = { str(v.base_name) : [] }
+                    for u in v.users:
+                        volume[str(v.base_name)].append(u.short_name)
+                    realm[str(r.base_name)].append(volume)
+            output.append(realm)
+        LOG.info("Scratch-Volume-User: " + json.dumps(output))
+
     def dump_user_info(self, users):
         """
         Dump basic information on each user in the array of users. Useful
