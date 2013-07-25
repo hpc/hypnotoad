@@ -62,6 +62,9 @@ class panlinks_plugin(plugin.action_plugin):
             report_helper = ReportHelper(self.config)
             report_helper.print_summary(datamodel_users, disk_users, realms)
 
+            # Print out a list of volumes and what users are in them.
+            report_helper.dump_user_volume_list(realms)
+
             # For debugging, completely dump information on all realms.
             #report_helper.dump_realm_info(realms)
 
