@@ -16,7 +16,7 @@ LOG = logging.getLogger('root')
 class hypnofs(object):
 
     def __init__(self):
-        self.dry_run_mode = False
+        self.dry_run_mode = True
 
     def timeout_command(self, command, timeout=10):
         """
