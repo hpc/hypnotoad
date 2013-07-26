@@ -28,15 +28,16 @@ class FileSystemHelper():
 
         # How to tell what volumes match up to each compartment. As well as
         # overrides for specifying a compartment for an entire realm.
-        compartment_options_json = config.get('Action Options', 'nfsdirs_compartment_opts')
+        compartment_options_json = config.get('Action Options', 'nfsdirs_compartment_options')
         self.compartment_options = json.loads(compartment_options_json)
 
         # Cache the compartment matchers for volumes and realms.
         for c, opts in self.compartment_options.iteritems():
-            for rx in opts['realm_regex']:
-                self.compartment_options[c]['realm_matcher'] = re.compile(rx)
+            self.compartment_options[c]['paths']  = []
+            for path in opts['paths']:
+                self.compartment_options[c]['paths'].append(path)
                 LOG.debug("Compartment `" + str(c) +
-                    "' using realm regex `" + str(rx) + "'.")
+                    "' using path `" + str(path) + "'.")
 
     def gather_users_from_realms(self, realms):
         """
@@ -84,9 +85,11 @@ class FileSystemHelper():
 
             realm.compartments = realm.compartments + self.gather_compartment_info(realm)
 
-            self.gather_users_in_realm(realm)
+            LOG.debug("found realm: ", realm)
+
+            #self.gather_users_in_realm(realm)
             realms.append(realm)
-            
+           
         return realms
 
     def gather_compartment_info(self, realm):

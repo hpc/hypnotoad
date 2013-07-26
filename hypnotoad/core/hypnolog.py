@@ -77,7 +77,7 @@ def setup_logger(name, enable_syslog=True, use_json=False):
     handler.setFormatter(formatter)
 
     logger = logging.getLogger(name)
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)
     logger.addHandler(handler)
 
     if enable_syslog:

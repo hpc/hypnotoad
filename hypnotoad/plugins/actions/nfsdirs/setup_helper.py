@@ -113,12 +113,7 @@ class SetupHelper():
         else:
             LOG.warning('There are NFS mounts that are NOT mounted.')
 
-        skips = list(self.realms_to_skip)
-        for s in skips:
-            LOG.debug("Configuration requires skipping realm: '" + str(s) + "'.")
-            mtab_mounts.discard(s)
-
-        LOG.info("Using realm mount points: " + str(mtab_mounts))
+        LOG.info("Found NFS mount points: " + str(mtab_mounts))
         return mtab_mounts
 
 # EOF
