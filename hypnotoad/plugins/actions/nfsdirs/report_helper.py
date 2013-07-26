@@ -1,5 +1,5 @@
 
-# A helper for printing out reports for the filerdirs plugin.
+# A helper for printing out reports for the nfsdirs plugin.
 #
 
 import sys
@@ -12,7 +12,7 @@ try:
 except ImportError, e:
     import simplejson as json
 
-sys.path.append(os.path.abspath('plugins/actions/filerdirs'))
+sys.path.append(os.path.abspath('plugins/actions/nfsdirs'))
 
 from base_classes import *
 from users_helper import *

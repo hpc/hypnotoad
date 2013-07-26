@@ -1,5 +1,5 @@
 #
-# An action plugin for hypnotoad to create filer directories.
+# An action plugin for hypnotoad to create nfs user directories.
 #
 
 import sys
@@ -12,7 +12,7 @@ try:
 except ImportError, e:
     import simplejson as json
 
-sys.path.append(os.path.abspath('plugins/actions/filerdirs'))
+sys.path.append(os.path.abspath('plugins/actions/nfsdirs'))
 
 from hypnotoad.core import hypnofs
 from base_classes import *
@@ -26,8 +26,8 @@ class UsersHelper():
     def __init__(self, config):
         self.config = config
 
-        self.new_dir_perms = config.get('Action Options', 'filerdirs_new_dir_perms')
-        self.command_timeout = config.getint('Action Options', 'filerdirs_subprocess_timeout')
+        self.new_dir_perms = config.get('Action Options', 'nfsdirs_new_dir_perms')
+        self.command_timeout = config.getint('Action Options', 'nfsdirs_subprocess_timeout')
 
     def create_missing_homes(self, disk_users, datamodel_users, realms):
         #LOG.debug("Creating missing home directories.")
@@ -94,7 +94,7 @@ class UsersHelper():
                 # Use the datamodel for the most complete list.
                 for datamodel_user in datamodel_users:
 
-                    # Don't assume users should have a home on a filer.
+                    # Don't assume users should have a home on nfs.
                     user_should_have_home_here = False
 
                     # Assume the user doesn't have a home here until we find it

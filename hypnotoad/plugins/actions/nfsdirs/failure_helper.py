@@ -5,8 +5,8 @@
 class FailureHelper:
 
     def __init__(self, config):
-        self.max_skip_bad_realms = config.getint('Action Options', 'filerdirs_max_skip_bad_realms')
-        self.command_timeout = config.getint('Action Options', 'filerdirs_subprocess_timeout')
+        self.max_skip_bad_realms = config.getint('Action Options', 'nfsdirs_max_skip_bad_realms')
+        self.command_timeout = config.getint('Action Options', 'nfsdirs_subprocess_timeout')
 
     def get_human_readable_failure_summary(self):
         """
@@ -21,7 +21,7 @@ class FailureHelper:
         output += "=========================================================================\n"
         output += "This is a counter of operations that took longer than '" + \
             str(self.command_timeout) + "' seconds during a\n"
-        output += "single execution of the filers directory creation script.\n"
+        output += "single execution of the nfs user directory creation script.\n"
         output += "-------------------------------------------------------------------------\n\n"
 
         for realm_key in self.filesystem_failures.keys():

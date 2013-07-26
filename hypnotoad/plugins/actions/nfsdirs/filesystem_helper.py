@@ -1,5 +1,5 @@
 #
-# An action plugin for hypnotoad to create filer dirs.
+# An action plugin for hypnotoad to create nfs user dirs.
 #
 
 import sys
@@ -12,7 +12,7 @@ try:
 except ImportError, e:
     import simplejson as json
 
-sys.path.append(os.path.abspath('plugins/actions/filerdirs'))
+sys.path.append(os.path.abspath('plugins/actions/nfsdirs'))
 
 from hypnotoad.core import hypnofs
 from base_classes import *
@@ -23,12 +23,12 @@ FS = hypnofs.hypnofs()
 class FileSystemHelper():
 
     def __init__(self, config):
-        self.new_dir_perms = config.get('Action Options', 'filerdirs_new_dir_perms')
-        self.command_timeout = config.getint('Action Options', 'filerdirs_subprocess_timeout')
+        self.new_dir_perms = config.get('Action Options', 'nfsdirs_new_dir_perms')
+        self.command_timeout = config.getint('Action Options', 'nfsdirs_subprocess_timeout')
 
         # How to tell what volumes match up to each compartment. As well as
         # overrides for specifying a compartment for an entire realm.
-        compartment_options_json = config.get('Action Options', 'filerdirs_compartment_opts')
+        compartment_options_json = config.get('Action Options', 'nfsdirs_compartment_opts')
         self.compartment_options = json.loads(compartment_options_json)
 
         # Cache the compartment matchers for volumes and realms.

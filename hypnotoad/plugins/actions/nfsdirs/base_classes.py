@@ -1,5 +1,5 @@
 #
-# Base classes for use in the filerdirs plugin.
+# Base classes for use in the nfsdirs plugin.
 #
 
 class ScratchUser(object):

@@ -12,7 +12,7 @@ try:
 except ImportError, e:
     import simplejson as json
 
-sys.path.append(os.path.abspath('plugins/actions/filerdirs'))
+sys.path.append(os.path.abspath('plugins/actions/nfsdirs'))
 
 from hypnotoad.core import hypnofs
 from base_classes import *
@@ -23,13 +23,8 @@ FS = hypnofs.hypnofs()
 class SetupHelper():
 
     def __init__(self, config):
-        self.state_dir = config.get('Basic Options', 'state_dir') + "/filerdirs"
-        self.max_diff_count = config.getint('Action Options', 'filerdirs_max_diff_count')
-
-        # The realm skip list is comma seperated.
-        self.realms_to_skip = shlex.shlex(config.get('Action Options', 'filerdirs_skip_realms'))
-        self.realms_to_skip.whitespace += ','
-        self.realms_to_skip.whitespace_split = True
+        self.state_dir = config.get('Basic Options', 'state_dir') + "/nfsdirs"
+        self.max_diff_count = config.getint('Action Options', 'nfsdirs_max_diff_count')
 
     def collect_users(self, models):
         """ Merge all hypnotoad models into a single array of ScratchUsers."""
@@ -111,8 +106,6 @@ class SetupHelper():
                 if l.find('nfs') != -1:
                     m.append(l.split()[1])
             return set(m)
-
-        exit
 
         fstab_mounts, mtab_mounts = map(tab_check, [open('/etc/fstab'), open('/etc/mtab')])
         if len(fstab_mounts & mtab_mounts) == len(fstab_mounts):
