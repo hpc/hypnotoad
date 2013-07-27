@@ -12,7 +12,7 @@ class disk_model_plugin(plugin.data_model_plugin):
     def setup(self, config, model_version):
         """Called before the plugin is asked to do anything."""
 
-        if config.getboolean('Disk Model Options', 'disk_model_plugin_enabled'):
+        if config.getboolean('Data Model Options', 'disk_model_plugin_enabled'):
             self.plugin_enabled = True
             LOG.debug("Disk model plugin enabled")
 
