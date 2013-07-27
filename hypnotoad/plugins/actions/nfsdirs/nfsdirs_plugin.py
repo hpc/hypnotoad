@@ -60,8 +60,7 @@ class nfsdirs_plugin(plugin.action_plugin):
             report_helper.print_summary(datamodel_users, disk_users, realms)
 
             # Attempt to create home directories where none exist.
-            #FIXME
-            #users_helper = UsersHelper(self.config)
-            #users_helper.create_missing_homes(disk_users, datamodel_users, realms)
+            users_helper = UsersHelper(self.config)
+            users_helper.create_missing_homes(disk_users, datamodel_users, realms)
 
 # EOF

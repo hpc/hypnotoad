@@ -33,11 +33,11 @@ class FileSystemHelper():
 
         # Cache the compartment matchers for volumes and realms.
         for c, opts in self.compartment_options.iteritems():
-            self.compartment_options[c]['paths']  = []
+            self.compartment_options[c] = []
             for path in opts['paths']:
-                self.compartment_options[c]['paths'].append(path)
-                LOG.debug("Compartment `" + str(c) +
-                    "' using path `" + str(path) + "'.")
+                self.compartment_options[c].append(path)
+                LOG.debug("Adding path `" + str(path) +
+                    "' to compartment `" + str(c) + "'.")
 
     def gather_users_from_realms(self, realms):
         """
@@ -76,52 +76,23 @@ class FileSystemHelper():
 
         for m in mount_points:
             absolute_path = os.path.normpath(m)
-            base_name = os.path.basename(absolute_path)
-            containing_path = absolute_path[:len(base_name)-1]
 
-            realm = ScratchRealm(base_name)
-            realm.absolute_path = absolute_path
-            realm.containing_path = containing_path
+            for c in self.compartment_options:
+                if (absolute_path in self.compartment_options[c]):
+                    LOG.info("Using `" + absolute_path + "' for NFS directory creation.")
 
-            realm.compartments = realm.compartments + self.gather_compartment_info(realm)
+                    base_name = os.path.basename(absolute_path)
+                    containing_path = absolute_path[:len(base_name)-1]
 
-            LOG.debug("found realm: ", realm)
+                    realm = ScratchRealm(base_name)
+                    realm.absolute_path = absolute_path
+                    realm.containing_path = containing_path
+                    realm.compartments = [ScratchCompartment(c)]
 
-            #self.gather_users_in_realm(realm)
-            realms.append(realm)
-           
+                    self.gather_users_in_realm(realm)
+                    realms.append(realm)
+        
         return realms
-
-    def gather_compartment_info(self, realm):
-        """
-        Create compartment objects from realm information. Compartment objects
-        specify which realms are included in a compartment.
-        """
-        LOG.debug("Gathering compartments for realm `" + realm.base_name + "'.")
-        compartments = []
-
-        # If a realm matcher isn't specified, base the compartment on
-        # the volume.
-        for compartment_name in self.compartment_options.iterkeys():
-
-            compartment = ScratchCompartment(compartment_name)
-
-            # Check to see if every volume in this realm should be in
-            # the new compartment. Realm matchers override volume
-            # matchers.
-            if 'realm_matcher' in self.compartment_options[compartment_name]:
-                realm_matcher = self.compartment_options[compartment_name]['realm_matcher']
-                if realm_matcher.match(realm.base_name):
-                    compartment.realms.append(realm)
-
-                    LOG.debug("Using realm matcher, " + \
-                        " placed realm `" + realm.base_name + \
-                        "' into compartment `" + compartment_name + "'.")
-
-                    compartments.append(compartment)
-
-        LOG.debug("Found compartments `" + str(compartments) + "'.")
-        return compartments
 
     def gather_users_in_realm(self, realm):
         """
@@ -137,10 +108,12 @@ class FileSystemHelper():
             return
         for user_name in user_names:
             user = ScratchUser(user_name)
+            user.compartments = user.compartments + realm.compartments
 
             home = ScratchHome(realm, None, user)
             home.absolute_path = os.path.join( \
                 realm.absolute_path, user.short_name)
+            home.compartment = realm.compartments[0]
 
             user.homes.append(home)
             realm.users.append(user)

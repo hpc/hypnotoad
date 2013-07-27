@@ -111,7 +111,7 @@ class UsersHelper():
                         if datamodel_compartment.short_name == compartment.short_name:
 
                             LOG.debug("User `" + datamodel_user.short_name + \
-                                "' SHOULD have a home on `" + realm.base_name + \
+                                "' SHOULD have a home on `" + realm.absolute_path + \
                                 "' in compartment `" + compartment.short_name + "'.")
 
                             user_should_have_home_here = True
@@ -125,14 +125,14 @@ class UsersHelper():
                             if disk_home.realm.base_name == realm.base_name:
 
                                 LOG.debug("User `" + str(datamodel_user.short_name) + \
-                                    "' DOES have a home on `" + str(realm.base_name) + "'.")
+                                    "' DOES have a home on `" + str(realm.absolute_path) + "'.")
 
                                 user_has_home_here = True
 
                     if not user_has_home_here:
                         if user_should_have_home_here:
                             LOG.debug("User `" + datamodel_user.short_name + \
-                                "' is MISSING a home on `" + realm.base_name + "'.")
+                                "' is MISSING a home on `" + realm.absolute_path + "'.")
                             users.append((datamodel_user,realm,compartment))
 
         # Debug
