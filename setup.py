@@ -2,6 +2,7 @@ import os
 
 from setuptools import setup, find_packages
 
+
 def read(*paths):
     """Build a file path from *paths* and return the contents."""
     with open(os.path.join(*paths), 'r') as f:
@@ -10,9 +11,9 @@ def read(*paths):
 setup(
     name='hypnotoad',
     version='0.1.6',
-    description='A utility that aids in transporting directory '+
-                'information from one or more data sources to various '+
-                'applications on a cluster using a standard interface. '+
+    description='A utility that aids in transporting directory ' +
+                'information from one or more data sources to various ' +
+                'applications on a cluster using a standard interface. ' +
                 'Not Zoidberg.',
     long_description=open('README.rst').read(),
     url='http://github.com/hpc/hypnotoad/',
@@ -28,10 +29,8 @@ setup(
         'Intended Audience :: Developers',
         'Natural Language :: English',
         'License :: OSI Approved :: 3-clause BSD',
-        'Operating System :: OS Independent',
+        'Operating System :: Linux',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.3',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
