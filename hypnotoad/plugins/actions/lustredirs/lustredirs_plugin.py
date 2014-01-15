@@ -16,7 +16,9 @@ from report_helper import *
 
 LOG = logging.getLogger('root')
 
+
 class lustredirs_plugin(plugin.action_plugin):
+
     def setup(self, config, model_version):
         """Called before the plugin is asked to do anything."""
         if config.getboolean('Action Options', 'lustredirs_plugin_enabled'):
@@ -62,6 +64,7 @@ class lustredirs_plugin(plugin.action_plugin):
             # Attempt to create home directories where none exist.
             # perform symlink creation.
             users_helper = UsersHelper(self.config)
-            users_helper.create_missing_homes(disk_users, datamodel_users, realms)
+            users_helper.create_missing_homes(
+                disk_users, datamodel_users, realms)
 
 # EOF

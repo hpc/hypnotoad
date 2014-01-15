@@ -12,7 +12,9 @@ from hypnotoad.core import plugin
 
 LOG = logging.getLogger('root')
 
+
 class slurm_plugin(plugin.action_plugin):
+
     def setup(self, config, model_version):
         """Called before the plugin is asked to do anything."""
 

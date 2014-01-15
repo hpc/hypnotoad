@@ -10,7 +10,9 @@ from hypnotoad.core import plugin
 LOG = logging.getLogger('root')
 PP = pprint.PrettyPrinter(indent=4)
 
+
 class passwd_file_plugin(plugin.action_plugin):
+
     def setup(self, config, model_version):
         """Called before the plugin is asked to do anything."""
 

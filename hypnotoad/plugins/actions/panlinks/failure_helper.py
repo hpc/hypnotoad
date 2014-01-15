@@ -2,12 +2,16 @@
 # Helpers related to handling failures.
 #
 
+
 class FailureHelper:
 
     def __init__(self, config):
-        self.max_skip_bad_vols = config.getint('Action Options', 'panlinks_max_skip_bad_vols')
-        self.max_skip_bad_realms = config.getint('Action Options', 'panlinks_max_skip_bad_realms')
-        self.command_timeout = config.getint('Action Options', 'panlinks_subprocess_timeout')
+        self.max_skip_bad_vols = config.getint(
+            'Action Options', 'panlinks_max_skip_bad_vols')
+        self.max_skip_bad_realms = config.getint(
+            'Action Options', 'panlinks_max_skip_bad_realms')
+        self.command_timeout = config.getint(
+            'Action Options', 'panlinks_subprocess_timeout')
 
     def get_human_readable_failure_summary(self):
         """
@@ -32,31 +36,32 @@ class FailureHelper:
             output += "Realm '" + str(realm_key) + "' failures:\n"
             for volume_key in self.filesystem_failures[realm_key].keys():
                 output += "    * Volume '" + str(volume_key) + "' failed '" + \
-                    str(self.filesystem_failures[realm_key][volume_key]) + "' time(s).\n"
+                    str(self.filesystem_failures[realm_key]
+                        [volume_key]) + "' time(s).\n"
 
             output += "\n"
 
         return output
 
     def check(self, realms):
-       """
-       This will check the configuration thresholds on failures for each realm
-       as well as update realm failure counters.
-       """
-       total_failed_realms = 0
+        """
+        This will check the configuration thresholds on failures for each realm
+        as well as update realm failure counters.
+        """
+        total_failed_realms = 0
 
-       for r in realms:
-           if len(r.failures) > self.max_skip_bad_vols:
-               r.has_failed = True
-               total_failed_realms += 1
+        for r in realms:
+            if len(r.failures) > self.max_skip_bad_vols:
+                r.has_failed = True
+                total_failed_realms += 1
 
-       if total_failed_realms > self.max_skip_bad_realms:
-           LOG.critical("Realm failures '" + str(total_realm_failures) + \
-               "' exceeds '" + str(self.max_skip_bad_realms) + \
-               "' configuration limit. This is really bad, so we're going" + \
-               " to exit the program now.")
-           sys.exit()
+        if total_failed_realms > self.max_skip_bad_realms:
+            LOG.critical("Realm failures '" + str(total_realm_failures) +
+                         "' exceeds '" + str(self.max_skip_bad_realms) +
+                         "' configuration limit. This is really bad, so we're going" +
+                         " to exit the program now.")
+            sys.exit()
 
-       return
+        return
 
 # EOF

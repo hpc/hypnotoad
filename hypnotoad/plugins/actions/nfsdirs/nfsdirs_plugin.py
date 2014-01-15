@@ -16,7 +16,9 @@ from report_helper import *
 
 LOG = logging.getLogger('root')
 
+
 class nfsdirs_plugin(plugin.action_plugin):
+
     def setup(self, config, model_version):
         """Called before the plugin is asked to do anything."""
         if config.getboolean('Action Options', 'nfsdirs_plugin_enabled'):
@@ -36,7 +38,8 @@ class nfsdirs_plugin(plugin.action_plugin):
     def append_model(self, models):
         """Handle a model appended to this output."""
         if self.plugin_enabled:
-            LOG.debug("Got to NFS user directory creation plugin append_model.")
+            LOG.debug(
+                "Got to NFS user directory creation plugin append_model.")
 
             # Perform basic sanity checks.
             setup_helper = SetupHelper(self.config)
@@ -61,6 +64,7 @@ class nfsdirs_plugin(plugin.action_plugin):
 
             # Attempt to create home directories where none exist.
             users_helper = UsersHelper(self.config)
-            users_helper.create_missing_homes(disk_users, datamodel_users, realms)
+            users_helper.create_missing_homes(
+                disk_users, datamodel_users, realms)
 
 # EOF

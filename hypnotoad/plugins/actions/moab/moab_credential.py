@@ -10,16 +10,17 @@ sys.path.append(os.path.abspath('plugins/actions/moab'))
 
 LOG = logging.getLogger('root')
 
+
 class MoabCredential():
 
     def __init__(self, cred_type, cred_id):
         # A set of attributes allowed to be in the identity manager data
         # format.
-        self.valid_attributes = set( \
-            "adminlevel", "alist", "chargerate", "comment", "emailaddress", \
-            "fstarget", "globalfstarget", "globalfsusage", "maxgres", \
-            "maxjob", "maxmem", "maxnode", "maxpe", "maxproc", "maxps", \
-            "maxwc", "plist", "pref", "priority", "qlist", "role" \
+        self.valid_attributes = set(
+            "adminlevel", "alist", "chargerate", "comment", "emailaddress",
+            "fstarget", "globalfstarget", "globalfsusage", "maxgres",
+            "maxjob", "maxmem", "maxnode", "maxpe", "maxproc", "maxps",
+            "maxwc", "plist", "pref", "priority", "qlist", "role"
         )
 
         # A set of types allowed to be in the identify manager data format.
@@ -28,8 +29,8 @@ class MoabCredential():
         if cred_type in self.valid_types:
             self.cred_type = str(cred_type)
         else:
-            LOG.error("Invalid moab credential type `" + \
-                str(cred_type) + "'.")
+            LOG.error("Invalid moab credential type `" +
+                      str(cred_type) + "'.")
 
         self.cred_id = str(cred_id)
         self.attrs = {}
@@ -41,8 +42,8 @@ class MoabCredential():
         if attribute in self.valid_attributes:
             self.attrs[str(attribute)] = str(value)
         else:
-            LOG.error("Invalid moab credential attribute `" + \
-                str(attribute) + "'.")
+            LOG.error("Invalid moab credential attribute `" +
+                      str(attribute) + "'.")
 
     def __str__(self):
         """
@@ -51,7 +52,7 @@ class MoabCredential():
         """
         result = "%s:%s" % (str(self.cred_type), str(self.cred_id))
 
-        for attr,value in self.attrs:
+        for attr, value in self.attrs:
             result = "%s %s=%s" % (str(typeid), str(attr), str(value))
 
         return result

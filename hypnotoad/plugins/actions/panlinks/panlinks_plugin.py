@@ -16,7 +16,9 @@ from report_helper import *
 
 LOG = logging.getLogger('root')
 
+
 class panlinks_plugin(plugin.action_plugin):
+
     def setup(self, config, model_version):
         """Called before the plugin is asked to do anything."""
         if config.getboolean('Action Options', 'panlinks_plugin_enabled'):
@@ -27,7 +29,8 @@ class panlinks_plugin(plugin.action_plugin):
             self.model_version = model_version
 
             # Determine if convenience symlinks should be created.
-            self.create_convenience = config.getboolean('Action Options', 'panlinks_convenience_create')
+            self.create_convenience = config.getboolean(
+                'Action Options', 'panlinks_convenience_create')
         else:
             self.plugin_enabled = False
 
@@ -66,7 +69,7 @@ class panlinks_plugin(plugin.action_plugin):
             report_helper.dump_user_volume_list(realms)
 
             # For debugging, completely dump information on all realms.
-            #report_helper.dump_realm_info(realms)
+            # report_helper.dump_realm_info(realms)
 
             # Create the convenience symlinks. Note that a newly added user
             # will need to wait until the next time the panlinks script is
@@ -74,10 +77,12 @@ class panlinks_plugin(plugin.action_plugin):
             # a second pass on the disk in a single run.
             users_helper = UsersHelper(self.config)
             if self.create_convenience:
-                users_helper.create_convenience_symlinks(disk_users, datamodel_users)
+                users_helper.create_convenience_symlinks(
+                    disk_users, datamodel_users)
 
             # Attempt to create home directories where none exist.
             # perform symlink creation.
-            users_helper.create_missing_homes(disk_users, datamodel_users, realms)
+            users_helper.create_missing_homes(
+                disk_users, datamodel_users, realms)
 
 # EOF

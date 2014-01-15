@@ -13,7 +13,9 @@ from moab_credential import *
 
 LOG = logging.getLogger('root')
 
+
 class moab_plugin(plugin.action_plugin):
+
     def setup(self, config, model_version):
         """Called before the plugin is asked to do anything."""
 
@@ -44,16 +46,20 @@ class moab_plugin(plugin.action_plugin):
                     if 'group_entry' in m.keys():
                         group = m['group_entry']
 
-                        group_cred = MoabCredential("group", group['short_name_string'])
-                        group_cred.add_attribute("fstarget", group['priority_fairshare_float'])
+                        group_cred = MoabCredential(
+                            "group", group['short_name_string'])
+                        group_cred.add_attribute(
+                            "fstarget", group['priority_fairshare_float'])
 
                         moab_credentials.append(group_cred)
 
                     if 'user_entry' in m.keys():
                         user = m['user_entry']
 
-                        user_cred = MoabCredential("user", user['short_name_string'])
-                        user_cred.add_attribute("fstarget", user['priority_fairshare_float'])
+                        user_cred = MoabCredential(
+                            "user", user['short_name_string'])
+                        user_cred.add_attribute(
+                            "fstarget", user['priority_fairshare_float'])
 
                         moab_credentials.append(user_cred)
 

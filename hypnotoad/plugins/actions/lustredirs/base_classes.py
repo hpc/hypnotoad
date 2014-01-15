@@ -2,7 +2,9 @@
 # Base classes for use in the lustredirs plugin.
 #
 
+
 class ScratchUser(object):
+
     def __init__(self, short_name, uid="-1", gid="-1"):
         self.short_name = short_name
         self.uid = uid
@@ -10,7 +12,9 @@ class ScratchUser(object):
         self.compartments = []
         self.homes = []
 
+
 class ScratchRealm(object):
+
     def __init__(self, base_name):
         self.compartments = []
         self.failures = []
@@ -20,11 +24,15 @@ class ScratchRealm(object):
         self.has_failed = False
         self.users = []
 
+
 class ScratchFailure(object):
+
     def __init__(self, message):
         self.message = message
 
+
 class ScratchHome(object):
+
     def __init__(self, realm, compartment, user):
         self.realm = realm
         self.compartment = compartment
@@ -51,7 +59,9 @@ class ScratchHome(object):
 
         return result
 
+
 class ScratchCompartment(object):
+
     def __init__(self, short_name, regex=None):
         self.regex = regex
         self.short_name = short_name

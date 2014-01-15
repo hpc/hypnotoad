@@ -20,15 +20,19 @@ from base_classes import *
 LOG = logging.getLogger('root')
 FS = hypnofs.hypnofs()
 
+
 class FileSystemHelper():
 
     def __init__(self, config):
-        self.new_dir_perms = config.get('Action Options', 'nfsdirs_new_dir_perms')
-        self.command_timeout = config.getint('Action Options', 'nfsdirs_subprocess_timeout')
+        self.new_dir_perms = config.get(
+            'Action Options', 'nfsdirs_new_dir_perms')
+        self.command_timeout = config.getint(
+            'Action Options', 'nfsdirs_subprocess_timeout')
 
         # How to tell what volumes match up to each compartment. As well as
         # overrides for specifying a compartment for an entire realm.
-        compartment_options_json = config.get('Action Options', 'nfsdirs_compartment_options')
+        compartment_options_json = config.get(
+            'Action Options', 'nfsdirs_compartment_options')
         self.compartment_options = json.loads(compartment_options_json)
 
         # Cache the compartment matchers for volumes and realms.
@@ -37,7 +41,7 @@ class FileSystemHelper():
             for path in opts['paths']:
                 self.compartment_options[c].append(path)
                 LOG.debug("Adding path `" + str(path) +
-                    "' to compartment `" + str(c) + "'.")
+                          "' to compartment `" + str(c) + "'.")
 
     def gather_users_from_realms(self, realms):
         """
@@ -65,7 +69,7 @@ class FileSystemHelper():
 
             user_dict[u.short_name].homes = homes_dict.values()
 
-        return [v for k,v in user_dict.items()]
+        return [v for k, v in user_dict.items()]
 
     def gather_realm_info(self, mount_points):
         """
@@ -79,10 +83,11 @@ class FileSystemHelper():
 
             for c in self.compartment_options:
                 if (absolute_path in self.compartment_options[c]):
-                    LOG.info("Using `" + absolute_path + "' for NFS directory creation.")
+                    LOG.info("Using `" + absolute_path +
+                             "' for NFS directory creation.")
 
                     base_name = os.path.basename(absolute_path)
-                    containing_path = absolute_path[:len(base_name)-1]
+                    containing_path = absolute_path[:len(base_name) - 1]
 
                     realm = ScratchRealm(base_name)
                     realm.absolute_path = absolute_path
@@ -91,27 +96,28 @@ class FileSystemHelper():
 
                     self.gather_users_in_realm(realm)
                     realms.append(realm)
-        
+
         return realms
 
     def gather_users_in_realm(self, realm):
         """
         Gather information on users within a realm.
         """
-	user_names, failed_to_list = FS.listdir(realm.absolute_path)
-        LOG.debug("Users listed in realm `" + str(realm.base_name) + "': " + str(user_names))
+        user_names, failed_to_list = FS.listdir(realm.absolute_path)
+        LOG.debug("Users listed in realm `" +
+                  str(realm.base_name) + "': " + str(user_names))
 
         if failed_to_list:
-            realm.failures.append( \
-                ScratchFailure("Failed to list realm `" + \
-                realm.absolute_path + "'."))
+            realm.failures.append(
+                ScratchFailure("Failed to list realm `" +
+                               realm.absolute_path + "'."))
             return
         for user_name in user_names:
             user = ScratchUser(user_name)
             user.compartments = user.compartments + realm.compartments
 
             home = ScratchHome(realm, None, user)
-            home.absolute_path = os.path.join( \
+            home.absolute_path = os.path.join(
                 realm.absolute_path, user.short_name)
             home.compartment = realm.compartments[0]
 

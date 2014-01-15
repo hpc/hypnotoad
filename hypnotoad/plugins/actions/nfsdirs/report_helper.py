@@ -19,6 +19,7 @@ from users_helper import *
 
 LOG = logging.getLogger('root')
 
+
 class ReportHelper():
 
     def __init__(self, config):
@@ -29,22 +30,22 @@ class ReportHelper():
         """
         Print a summary of what was found when analyzing the realms.
         """
-        LOG.info("Found `" + str(len(datamodel_users)) + \
-            "' users in the datamodel (ldap).")
-        LOG.info("Found `" + str(len(disk_users)) + \
-            "' users with entries on disk.")
+        LOG.info("Found `" + str(len(datamodel_users)) +
+                 "' users in the datamodel (ldap).")
+        LOG.info("Found `" + str(len(disk_users)) +
+                 "' users with entries on disk.")
 
-        with_datamodel_no_disk = self.users_helper.users_in_this_not_that( \
+        with_datamodel_no_disk = self.users_helper.users_in_this_not_that(
             datamodel_users, disk_users)
-        with_disk_no_datamodel = self.users_helper.users_in_this_not_that( \
+        with_disk_no_datamodel = self.users_helper.users_in_this_not_that(
             disk_users, datamodel_users)
-        users_missing_homes = self.users_helper.users_missing_homes( \
+        users_missing_homes = self.users_helper.users_missing_homes(
             disk_users, datamodel_users, realms)
 
-        LOG.info("Found `" + str(len(with_disk_no_datamodel)) + \
-            "' objects on disk that have no datamodel (ldap) entry.")
-        LOG.info("Listing objects on disk that have no datamodel (ldap) entry: `" + \
-            str([u.short_name for u in with_disk_no_datamodel]))
+        LOG.info("Found `" + str(len(with_disk_no_datamodel)) +
+                 "' objects on disk that have no datamodel (ldap) entry.")
+        LOG.info("Listing objects on disk that have no datamodel (ldap) entry: `" +
+                 str([u.short_name for u in with_disk_no_datamodel]))
 
     def dump_user_info(self, users):
         """
