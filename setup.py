@@ -1,6 +1,6 @@
 import os
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 def read(*paths):
     """Build a file path from *paths* and return the contents."""
@@ -14,7 +14,7 @@ setup(
                 'information from one or more data sources to various '+
                 'applications on a cluster using a standard interface. '+
                 'Not Zoidberg.',
-    long_description=open('README.txt').read(),
+    long_description=open('README.rst').read(),
     url='http://github.com/hpc/hypnotoad/',
     license='3-clause BSD',
     author='Jon Bringhurst',
