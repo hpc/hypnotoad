@@ -8,7 +8,9 @@ from hypnotoad.core import plugin
 
 LOG = logging.getLogger('root')
 
+
 class disk_model_plugin(plugin.data_model_plugin):
+
     def setup(self, config, model_version):
         """Called before the plugin is asked to do anything."""
 

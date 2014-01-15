@@ -9,7 +9,9 @@ from hypnotoad.core import plugin
 
 LOG = logging.getLogger('root')
 
+
 class ldap_plugin(plugin.data_model_plugin):
+
     def setup(self, config, model_version):
         """Called before the plugin is asked to do anything."""
 
@@ -18,12 +20,13 @@ class ldap_plugin(plugin.data_model_plugin):
             LOG.debug("LDAP plugin enabled")
 
             ldap_url = config.get('Data Model Options', 'ldap_server')
-            ldap_dc  = config.get('Data Model Options', 'ldap_dc')
+            ldap_dc = config.get('Data Model Options', 'ldap_dc')
 
             ldap_ou_group = config.get('Data Model Options', 'ldap_ou_group')
             ldap_ou_user = config.get('Data Model Options', 'ldap_ou_user')
 
-            ldap_timeout = config.getfloat('Data Model Options', 'ldap_timeout')
+            ldap_timeout = config.getfloat(
+                'Data Model Options', 'ldap_timeout')
 
             self.ldap_dn_user = "ou=" + ldap_ou_user + "," + ldap_dc
             self.ldap_dn_group = "ou=" + ldap_ou_group + "," + ldap_dc
@@ -56,7 +59,8 @@ class ldap_plugin(plugin.data_model_plugin):
         if self.plugin_enabled:
             LOG.debug("Got to ldap plugin get_model")
 
-            model.append({'little_lang_entry':{'version':self.model_version}}) 
+            model.append(
+                {'little_lang_entry': {'version': self.model_version}})
 
             def ldap_search(dn, attrs):
                 return self.ldap_ctx.search_s(dn, ldap.SCOPE_SUBTREE, '(cn=*)', attrs)
@@ -82,7 +86,8 @@ class ldap_plugin(plugin.data_model_plugin):
                     'priority_qos_name_array': ''
                 }})
 
-            groups = ldap_search(self.ldap_dn_group, ['cn', 'hpcDRMshare', 'memberUid'])
+            groups = ldap_search(
+                self.ldap_dn_group, ['cn', 'hpcDRMshare', 'memberUid'])
 
             for g in groups:
                 dn, attrs = g

@@ -15,7 +15,9 @@ from hypnotoad.core import plugin
 
 LOG = logging.getLogger('root')
 
+
 class oldldap_plugin(plugin.data_model_plugin):
+
     def setup(self, config, model_version):
         """Called before the plugin is asked to do anything."""
 
@@ -24,21 +26,21 @@ class oldldap_plugin(plugin.data_model_plugin):
             LOG.debug("OLD LDAP plugin enabled")
 
             ldap_url = config.get('Data Model Options', 'oldldap_server')
-            self.ldap_dc  = config.get('Data Model Options', 'oldldap_dc')
+            self.ldap_dc = config.get('Data Model Options', 'oldldap_dc')
 
-            ldap_timeout = config.getfloat( \
+            ldap_timeout = config.getfloat(
                 'Data Model Options', 'oldldap_timeout')
 
-            self.use_groups = config.getboolean( \
+            self.use_groups = config.getboolean(
                 'Data Model Options', 'oldldap_use_groups')
 
             # Check to see what OUs map to what compartment.
-            self.user_compartment_ous = json.loads(config.get( \
+            self.user_compartment_ous = json.loads(config.get(
                 'Data Model Options', 'oldldap_user_compartment_ous'))
 
             for compartment, ous in self.user_compartment_ous.iteritems():
-                LOG.debug("Populating compartment `" + compartment + \
-                    "' with OUs  `" + str(set(ous)) + "'.")
+                LOG.debug("Populating compartment `" + compartment +
+                          "' with OUs  `" + str(set(ous)) + "'.")
 
             LOG.debug("URL: " + ldap_url)
             LOG.debug("Base DC: " + self.ldap_dc)
@@ -65,7 +67,8 @@ class oldldap_plugin(plugin.data_model_plugin):
         if self.plugin_enabled:
             LOG.debug("Got to OLD ldap plugin get_model")
 
-            model.append({'little_lang_entry':{'version':self.model_version}}) 
+            model.append(
+                {'little_lang_entry': {'version': self.model_version}})
 
             def ldap_search(dn, attrs):
                 return self.ldap_ctx.search_s(dn, ldap.SCOPE_SUBTREE, '(cn=*)', attrs)
@@ -88,12 +91,12 @@ class oldldap_plugin(plugin.data_model_plugin):
                         # included in a group.
                         raise NotImplementedError
 
-                    #LOG.debug("Populating model for compartment `" + \
+                    # LOG.debug("Populating model for compartment `" + \
                     #    compartment + "' with OU `" + str(ou_name) + \
                     #    "' (`" + str(len(users)) + "' users).")
 
-                    #LOG.debug("\r\n\r\n\r\n\r\n")
-                    #for u in users:
+                    # LOG.debug("\r\n\r\n\r\n\r\n")
+                    # for u in users:
                     #    _, a = u
                     #    LOG.debug("uid = " + a['uid'][0])
 
@@ -108,7 +111,7 @@ class oldldap_plugin(plugin.data_model_plugin):
                             'home_directory_string': attrs['homeDirectory'][0],
                             'login_shell_string': attrs['loginShell'][0],
                             'compartment_access_array': [compartment]
-                    }})
+                        }})
 
         return model
 
