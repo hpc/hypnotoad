@@ -68,16 +68,18 @@ userdirs_realm_config: [
                            "yellow":
                            [
                              {
+                               "base_path": "/filers/yellow",
+                               "require_mount": true,
                                "mount_point": "/filers/yellow",
                                "mount_type": "nfs",
-                               "base_path": "/filers/yellow",
                                "has_volumes": false,
                                "create_symlinks": false
                              },
                              {
+                               "base_path": "/panfs/scratch1",
+                               "require_mount": true,
                                "mount_point": "/panfs/scratch1",
                                "mount_type": "panfs",
-                               "base_path": "/panfs/scratch1",
                                "has_volumes": true,
                                "volume_regex": "avol\\d{1,}(?ix)",
                                "create_symlinks": true,
@@ -90,23 +92,26 @@ userdirs_realm_config: [
                            "turquoise":
                            [
                              {
+                               "base_path": "/filers/turquoise",
+                               "require_mount: true,
                                "mount_point": "/filers/turquoise",
                                "mount_type": "nfs",
-                               "base_path": "/filers/turquoise",
                                "has_volumes": false,
                                "create_symlinks": false
                              },
                              {
+                               "base_path": "/lustre/lscratch1",
+                               "require_mount": true,
                                "mount_point": "/lustre/lscratch1",
                                "mount_type": "lustre",
-                               "base_path": "/lustre/lscratch1",
                                "has_volumes": false,
                                "create_symlinks": false
                              },
                              {
+                               "base_path": "/panfs/scratch1",
+                               "require_mount": true,
                                "mount_point": "/panfs/scratch1",
                                "mount_type": "panfs",
-                               "base_path": "/panfs/scratch1",
                                "has_volumes": true,
                                "volume_regex": "vol\\d{1,}(?ix)",
                                "create_symlinks": true,
@@ -118,7 +123,7 @@ userdirs_realm_config: [
                        ]
 
 ; Options for the compartment map generator plugin.
-compartment_plugin_enabled:    yes
-compartment_output_location:   /usr/projects/systems/compartment.map
+compartment_plugin_enabled:   yes
+compartment_output_location:  /usr/projects/systems/compartment.map
 
 ; ================================ EOF ===================================
