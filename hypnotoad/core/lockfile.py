@@ -54,7 +54,7 @@ __all__ = [
     'AlreadyLockedError',
     'NotLockedError',
     'Lock',
-    ]
+]
 
 import os
 import sys
@@ -65,31 +65,38 @@ import socket
 import logging
 import datetime
 
-DEFAULT_LOCK_LIFETIME  = datetime.timedelta(seconds=15)
+DEFAULT_LOCK_LIFETIME = datetime.timedelta(seconds=15)
 # Allowable a bit of clock skew.
 CLOCK_SLOP = datetime.timedelta(seconds=10)
 
 log = logging.getLogger('locknix.locks')
 
 
-
 # Exceptions that can be raised by this module
 class LockError(Exception):
+
     """Base class for all exceptions in this module."""
 
+
 class AlreadyLockedError(LockError):
+
     """An attempt is made to lock an already locked object."""
 
+
 class NotLockedError(LockError):
+
     """An attempt is made to unlock an object that isn't locked."""
 
+
 class TimeOutError(LockError):
+
     """The timeout interval elapsed before the lock succeeded."""
 
 
-
 class Lock:
+
     """A portable way to lock resources by way of the file system."""
+
     def __init__(self, lockfile, lifetime=DEFAULT_LOCK_LIFETIME):
         """Create the resource lock using the given file name and lifetime.
 
@@ -230,7 +237,7 @@ class Lock:
             # Okay, we haven't timed out, but we didn't get the lock.  Let's
             # find if the lock lifetime has expired.
             if (self._releasetime != -1 and
-                datetime.datetime.now() > self._releasetime + CLOCK_SLOP):
+                    datetime.datetime.now() > self._releasetime + CLOCK_SLOP):
                 # Yes, so break the lock.
                 self._break()
                 log.error('lifetime has expired, breaking')
@@ -477,7 +484,6 @@ class Lock:
         time.sleep(interval)
 
 
-
 # Unit test framework
 def _dochild():
     prefix = '[%d]' % os.getpid()
@@ -504,14 +510,14 @@ def _dochild():
             print prefix, 'timed out'
         else:
             t1 = time.time()
-            print prefix, 'acquisition time:', t1-t0, 'seconds'
+            print prefix, 'acquisition time:', t1 - t0, 'seconds'
             time.sleep(workinterval)
     finally:
         if is_locked:
             try:
                 lockfile.unlock()
                 t2 = time.time()
-                print prefix, 'lock hold time:', t2-t1, 'seconds'
+                print prefix, 'lock hold time:', t2 - t1, 'seconds'
             except NotLockedError:
                 print prefix, 'lock was broken'
     # wait for next web hit
@@ -535,7 +541,7 @@ def _seed():
 def _onetest():
     loopcount = random.randint(1, 100)
     for i in range(loopcount):
-        print 'Loop %d of %d' % (i+1, loopcount)
+        print 'Loop %d of %d' % (i + 1, loopcount)
         pid = os.fork()
         if pid:
             # parent, wait for child to exit

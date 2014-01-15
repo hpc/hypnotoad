@@ -13,6 +13,7 @@ import signal
 
 LOG = logging.getLogger('root')
 
+
 class hypnofs(object):
 
     def __init__(self):
@@ -24,7 +25,7 @@ class hypnofs(object):
         if the process doesn't get killed cleanly (for D-state).
         """
         start = datetime.datetime.now()
-        process = subprocess.Popen( \
+        process = subprocess.Popen(
             command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         while process.poll() is None:
@@ -64,11 +65,11 @@ class hypnofs(object):
         LOG.debug("Creating directory with path of '" + path + "'.")
 
         if not self.dry_run_mode:
-            result, failed = self.callback_wrap( \
+            result, failed = self.callback_wrap(
                 ['mkdir', '-p', path], timeout, fail_cb, fail_obj)
             return result, failed
         else:
-            return (None,False)
+            return (None, False)
 
     def chmod(self, path, perms, timeout=10, fail_cb=None, fail_obj=None):
         """A fault tolerant version of os.chmod()"""
@@ -76,25 +77,25 @@ class hypnofs(object):
         LOG.debug("Changing permissions of '" + path + "' to '" + perms + "'.")
 
         if not self.dry_run_mode:
-            result, failed = self.callback_wrap( \
+            result, failed = self.callback_wrap(
                 ['chmod', perms, path], timeout, fail_cb, fail_obj)
             return result, failed
         else:
-            return (None,False)
+            return (None, False)
 
-    def chown(self, path, owner='-1', group='-1', timeout=10, \
-        fail_cb=None, fail_obj=None):
+    def chown(self, path, owner='-1', group='-1', timeout=10,
+              fail_cb=None, fail_obj=None):
         """A fault tolerant version of os.chown()."""
 
-        LOG.debug("Changing ownership of '" + \
-            path + "' to '" + owner + ":" + group + "'.")
+        LOG.debug("Changing ownership of '" +
+                  path + "' to '" + owner + ":" + group + "'.")
 
         if not self.dry_run_mode:
-            result, failed = self.callback_wrap( \
+            result, failed = self.callback_wrap(
                 ['chown', owner + ':' + group, path], timeout, fail_cb, fail_obj)
             return result, failed
         else:
-            return (None,False)
+            return (None, False)
 
     def symlink(self, src, dest, timeout=10, fail_cb=None, fail_obj=None):
         """A fault tolerant version of os.symlink()"""
@@ -102,16 +103,16 @@ class hypnofs(object):
         LOG.debug("Creating a symlink from '" + src + "' to '" + dest + "'.")
 
         if not self.dry_run_mode:
-            result, failed = self.callback_wrap( \
+            result, failed = self.callback_wrap(
                 ['ln', '-s', '-n', '-f', src, dest], timeout, fail_cb, fail_obj)
             return result, failed
         else:
-            return (None,False)
+            return (None, False)
 
     def isdir(self, path, timeout=10, fail_cb=None, fail_obj=None):
         """A fault tolerant version of os.path.isdir()"""
 
-        cmd_output, failed = self.callback_wrap( \
+        cmd_output, failed = self.callback_wrap(
             ['file', '-b', path], timeout, fail_cb, fail_obj)
 
         if "directory" in cmd_output[0]:
@@ -122,7 +123,7 @@ class hypnofs(object):
     def isfile(self, path, timeout=10, fail_cb=None, fail_obj=None):
         """A fault tolerant version of os.path.isfile()"""
 
-        cmd_output, failed = self.callback_wrap( \
+        cmd_output, failed = self.callback_wrap(
             ['file', '-b', path], timeout, fail_cb, fail_obj)
 
         if len(cmd_output) < 1:
@@ -137,7 +138,7 @@ class hypnofs(object):
     def islink(self, path, timeout=10, fail_cb=None, fail_obj=None):
         """A fault tolerant version of os.path.islink()"""
 
-        cmd_output, failed = self.callback_wrap( \
+        cmd_output, failed = self.callback_wrap(
             ['file', '-b', path], timeout, fail_cb, fail_obj)
 
         if "symbolic link" in cmd_output[0]:
@@ -148,7 +149,7 @@ class hypnofs(object):
     def path_exists(self, path, timeout=10, fail_cb=None, fail_obj=None):
         """A fault tolerant version of os.path.exists()"""
 
-        cmd_output, failed = self.callback_wrap( \
+        cmd_output, failed = self.callback_wrap(
             ['file', '-b', path], timeout, fail_cb, fail_obj)
 
         if "ERROR" in cmd_output[0]:
@@ -159,8 +160,9 @@ class hypnofs(object):
     def listdir(self, path, timeout=10, fail_cb=None, fail_obj=None):
         """A fault tolerant version of os.listdir()"""
 
-        cmd_output, failed = self.callback_wrap( \
-            ['find', path, '-mindepth', '1', '-maxdepth', '1', '-printf', '%f\\n'], \
+        cmd_output, failed = self.callback_wrap(
+            ['find', path, '-mindepth', '1',
+                '-maxdepth', '1', '-printf', '%f\\n'],
             timeout, fail_cb, fail_obj)
 
         if failed:
@@ -170,7 +172,7 @@ class hypnofs(object):
     def ismount(self, path, timeout=10, fail_cb=None, fail_obj=None):
         """A fault tolerant version of os.path.ismount()"""
 
-        cmd_output, failed = self.callback_wrap( \
+        cmd_output, failed = self.callback_wrap(
             ['mountpoint', path], timeout, fail_cb, fail_obj)
 
         if not cmd_output:

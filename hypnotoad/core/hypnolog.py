@@ -13,7 +13,9 @@ try:
 except ImportError, e:
     import simplejson as json
 
+
 class JsonFormatter(logging.Formatter):
+
     """A custom formatter to format logging records as json objects"""
 
     def parse(self):
@@ -38,11 +40,13 @@ class JsonFormatter(logging.Formatter):
 
         return json.dumps(log_record, True)
 
+
 def create_timestamp(record):
     """Creates a human readable timestamp for a log records created date"""
 
     timestamp = datetime.fromtimestamp(record.created)
     return timestamp.strftime("%y-%m-%d %H:%M:%S,%f"),
+
 
 def setup_logger(name, enable_syslog=True, use_json=False):
     if use_json:
@@ -71,7 +75,8 @@ def setup_logger(name, enable_syslog=True, use_json=False):
 
         formatter = JsonFormatter(custom_format)
     else:
-        formatter = logging.Formatter(fmt='HYPNOLOG %(asctime)s - %(levelname)s - %(module)s - %(message)s')
+        formatter = logging.Formatter(
+            fmt='HYPNOLOG %(asctime)s - %(levelname)s - %(module)s - %(message)s')
 
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
@@ -85,4 +90,3 @@ def setup_logger(name, enable_syslog=True, use_json=False):
         logger.addHandler(syslog_handler)
 
     return logger
-

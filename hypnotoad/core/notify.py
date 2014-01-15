@@ -9,7 +9,9 @@ from email.mime.text import MIMEText
 
 LOG = logging.getLogger('root')
 
+
 class notify(object):
+
     def email(self, to_list, message, subject="Notification", from_address="nobody@nowhere", smtp_server="pobox1663.lanl.gov"):
         LOG.debug("Sending an email.")
 

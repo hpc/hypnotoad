@@ -11,11 +11,13 @@ from hypnotoad.core.plugin_loader import PluginLoader
 
 LOG = setup_logger('root')
 
+
 def read_config(filename):
     config = ConfigParser.RawConfigParser()
     config.read(filename)
 
     return config
+
 
 def usage():
     print """
@@ -26,6 +28,7 @@ Options:
   -v, --version           print the version and exit
   -c FILE, --config=FILE  use the FILE specified for configuration settings
     """
+
 
 def which_program(program):
     """
@@ -45,14 +48,15 @@ def which_program(program):
                 return exe_file
     return None
 
+
 def log_version():
     """
     Determine if this is a git repo or an installed package and print out
     the version number.
     """
     git_binary = which_program("git")
-    git_child = Popen([git_binary, "rev-parse", "HEAD"], \
-        stdout=PIPE, stderr=PIPE)
+    git_child = Popen([git_binary, "rev-parse", "HEAD"],
+                      stdout=PIPE, stderr=PIPE)
     git_return = git_child.wait()
 
     if git_return == 0:
@@ -63,14 +67,17 @@ def log_version():
         version = pkg_resources.require("hypnotoad")[0].version
         LOG.critical("hypnotoad-version-setuptools:" + str(version))
 
+
 def execute_from_command_line():
     LOG.info("Execution started.")
     parse_command_line_options()
     LOG.info("Execution finished.")
 
+
 def parse_command_line_options():
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hc:v", ["help", "config=", "version"])
+        opts, args = getopt.getopt(
+            sys.argv[1:], "hc:v", ["help", "config=", "version"])
     except getopt.GetoptError, err:
         print str(err)
         usage()
