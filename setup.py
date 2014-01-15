@@ -1,24 +1,40 @@
-from setuptools import setup, find_packages
+import os
 
-setup (
-    name               = 'hypnotoad',
-    version            = '0.1.5',
-    author             = 'Jon Bringhurst',
-    author_email       = 'jonb@lanl.gov',
-    url                = 'https://www.git.lanl.gov/rm/hypnotoad',
-    license            = 'LICENSE.txt',
-    scripts            = ['hypnotoad/bin/hypnotoad'],
+from setuptools import setup
 
-    long_description   = open('README.txt').read(),
-    description        = 'A utility that aids in transporting directory ' +
-                         'information from one or more data sources to various ' +
-                         'applications on a cluster using a standard interface. ' +
-                         'Not Zoidberg.',
+def read(*paths):
+    """Build a file path from *paths* and return the contents."""
+    with open(os.path.join(*paths), 'r') as f:
+        return f.read()
 
-    packages           = find_packages(),
+setup(
+    name='hypnotoad',
+    version='0.1.6',
+    description='A utility that aids in transporting directory '+
+                'information from one or more data sources to various '+
+                'applications on a cluster using a standard interface. '+
+                'Not Zoidberg.',
+    long_description=open('README.txt').read(),
+    url='http://github.com/hpc/hypnotoad/',
+    license='3-clause BSD',
+    author='Jon Bringhurst',
+    author_email='jon@bringhurst.org',
+    py_modules=['hypnotoad'],
+    include_package_data=True,
+    scripts=['hypnotoad/bin/hypnotoad'],
+    packages=find_packages(exclude=[]),
+    classifiers=[
+        'Development Status :: 5 - Production/Stable',
+        'Intended Audience :: Developers',
+        'Natural Language :: English',
+        'License :: OSI Approved :: 3-clause BSD',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.3',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+    ],
 )
-
-#from pylint.lint import Run
-#Run(['--errors-only', 'hypnotoad']) 
 
 # EOF
